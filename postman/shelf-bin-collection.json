@@ -1,0 +1,510 @@
+{
+  "info": {
+    "_postman_id": "f6g7h8i9-j0k1-2345-lmno-pq6789012345",
+    "name": "Windsurf API - Shelves and Bins",
+    "description": "Shelf and bin management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Shelves",
+      "item": [
+        {
+          "name": "Get All Shelves",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves?zoneId={{zoneId}}&warehouseId={{warehouseId}}&search=shelf&isActive=true&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves"
+              ],
+              "query": [
+                {
+                  "key": "zoneId",
+                  "value": "{{zoneId}}",
+                  "description": "Filter by zone"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "description": "Filter by warehouse"
+                },
+                {
+                  "key": "search",
+                  "value": "shelf",
+                  "description": "Search by name"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Results per page"
+                }
+              ]
+            },
+            "description": "Get all shelves with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Shelf",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}"
+              ]
+            },
+            "description": "Get single shelf by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Shelf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shelf A1\",\n  \"description\": \"Storage shelf for small items\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"position\": {\n    \"row\": \"A\",\n    \"column\": \"1\",\n    \"level\": \"1\"\n  },\n  \"dimensions\": {\n    \"width\": 100,\n    \"height\": 200,\n    \"depth\": 50,\n    \"unit\": \"cm\"\n  },\n  \"capacity\": 50,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves"
+              ]
+            },
+            "description": "Create a new shelf"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Shelf",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shelf A1 Updated\",\n  \"description\": \"Updated storage shelf for small items\",\n  \"position\": {\n    \"row\": \"A\",\n    \"column\": \"1\",\n    \"level\": \"2\"\n  },\n  \"dimensions\": {\n    \"width\": 120,\n    \"height\": 220,\n    \"depth\": 60,\n    \"unit\": \"cm\"\n  },\n  \"capacity\": 60,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}"
+              ]
+            },
+            "description": "Update shelf details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Shelf",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}"
+              ]
+            },
+            "description": "Delete a shelf"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shelf Utilization",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}/utilization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}",
+                "utilization"
+              ]
+            },
+            "description": "Get shelf utilization statistics"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bins",
+      "item": [
+        {
+          "name": "Get All Bins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins?shelfId={{shelfId}}&zoneId={{zoneId}}&warehouseId={{warehouseId}}&search=bin&isActive=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins"
+              ],
+              "query": [
+                {
+                  "key": "shelfId",
+                  "value": "{{shelfId}}",
+                  "description": "Filter by shelf"
+                },
+                {
+                  "key": "zoneId",
+                  "value": "{{zoneId}}",
+                  "description": "Filter by zone"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "description": "Filter by warehouse"
+                },
+                {
+                  "key": "search",
+                  "value": "bin",
+                  "description": "Search by name"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status"
+                }
+              ]
+            },
+            "description": "Get all bins with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bins in Shelf",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}/bins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}",
+                "bins"
+              ]
+            },
+            "description": "Get all bins in a specific shelf"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Bin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins",
+                "{{binId}}"
+              ]
+            },
+            "description": "Get single bin by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Bin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bin A1-1\",\n  \"description\": \"Storage bin for small electronics\",\n  \"shelfId\": \"{{shelfId}}\",\n  \"position\": {\n    \"row\": \"1\",\n    \"column\": \"1\"\n  },\n  \"dimensions\": {\n    \"width\": 30,\n    \"height\": 20,\n    \"depth\": 40,\n    \"unit\": \"cm\"\n  },\n  \"capacity\": 10,\n  \"currentItems\": 0,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins"
+              ]
+            },
+            "description": "Create a new bin"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Bin in Shelf",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bin A1-2\",\n  \"description\": \"Storage bin for cables\",\n  \"position\": {\n    \"row\": \"1\",\n    \"column\": \"2\"\n  },\n  \"dimensions\": {\n    \"width\": 30,\n    \"height\": 20,\n    \"depth\": 40,\n    \"unit\": \"cm\"\n  },\n  \"capacity\": 15,\n  \"currentItems\": 0,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shelves/{{shelfId}}/bins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shelves",
+                "{{shelfId}}",
+                "bins"
+              ]
+            },
+            "description": "Create a new bin in a specific shelf"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Bin",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bin A1-1 Updated\",\n  \"description\": \"Updated storage bin for small electronics\",\n  \"position\": {\n    \"row\": \"1\",\n    \"column\": \"1\"\n  },\n  \"dimensions\": {\n    \"width\": 35,\n    \"height\": 25,\n    \"depth\": 45,\n    \"unit\": \"cm\"\n  },\n  \"capacity\": 12,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins",
+                "{{binId}}"
+              ]
+            },
+            "description": "Update bin details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Bin",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins",
+                "{{binId}}"
+              ]
+            },
+            "description": "Delete a bin"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bin Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins",
+                "{{binId}}",
+                "inventory"
+              ]
+            },
+            "description": "Get inventory items in a bin"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Bin Capacity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 20\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bins/{{binId}}/capacity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bins",
+                "{{binId}}",
+                "capacity"
+              ]
+            },
+            "description": "Update bin capacity"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

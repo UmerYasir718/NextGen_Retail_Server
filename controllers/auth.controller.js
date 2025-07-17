@@ -1,0 +1,383 @@
+const crypto = require('crypto');
+const User = require('../models/user.model');
+const Company = require('../models/company.model');
+const ErrorResponse = require('../utils/errorResponse');
+const sendEnhancedEmail = require('../utils/enhancedEmail');
+
+// @desc    Register user (Admin)
+// @route   POST /api/auth/register
+// @access  Public
+exports.register = async (req, res, next) => {
+  try {
+    const { name, email, password, companyName, address } = req.body;
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(409).json({ message: "Email is already registered",error:true });
+  }
+  const existingCompany=await Company.findOne({name:companyName});
+  if(existingCompany){
+    return res.status(409).json({ message: "Company is not Available!",error:true });
+  }
+    // Create company first
+    const company = await Company.create({
+      name: companyName,
+      address,
+      contactEmail: email,
+      createdAt: Date.now()
+    });
+
+    // Create user with Admin role
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: 'company_admin',
+      companyId: company._id
+    });
+
+    // Generate verification token
+    const verificationToken = user.getVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Create verification URL
+    const verificationUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/auth/verify-email/${verificationToken}`;
+
+    try {
+      await sendEnhancedEmail({
+        email: user.email,
+        subject: 'Email Verification',
+        templateName: 'verification',
+        templateData: {
+          name: user.name,
+          verificationUrl
+        },
+        plainText: `You are receiving this email because you need to confirm your email address. Please click the link below to verify your email address: 
+
+ ${verificationUrl}`
+      });
+
+      // Update company with created user
+      company.createdBy = user._id;
+      await company.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Email sent for verification'
+      });
+    } catch (err) {
+      console.log(err);
+      user.verificationToken = undefined;
+      user.verificationExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return next(new ErrorResponse('Email could not be sent', 500));
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access  Public
+exports.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate email & password
+    if (!email || !password) {
+      return next(new ErrorResponse('Please provide an email and password', 400));
+    }
+
+    // Check for user
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      return next(new ErrorResponse('Invalid credentials', 401));
+    }
+
+    // Check if password matches
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      return next(new ErrorResponse('Invalid credentials', 401));
+    }
+
+    // Check if user is verified (except for SuperAdmin)
+    if (user.role !== 'super_admin' && !user.isVerified) {
+      return next(new ErrorResponse('Please verify your email first', 401));
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Verify email
+// @route   GET /api/auth/verify-email/:token
+// @access  Public
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    // Get hashed token
+    const verificationToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      verificationToken,
+      verificationExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return next(new ErrorResponse('Invalid token', 400));
+    }
+
+    // Set user as verified
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpire = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+exports.getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return next(new ErrorResponse('There is no user with that email', 404));
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset url
+    const resetUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/auth/reset-password/${resetToken}`;
+
+    try {
+      await sendEnhancedEmail({
+        email: user.email,
+        subject: 'Password Reset',
+        templateName: 'passwordReset',
+        templateData: {
+          name: user.name,
+          resetUrl
+        },
+        plainText: `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the following link to reset your password: 
+
+ ${resetUrl} 
+
+ If you did not request this, please ignore this email and your password will remain unchanged.`
+      });
+
+      res.status(200).json({ success: true, message: 'Email sent' });
+    } catch (err) {
+      console.log(err);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return next(new ErrorResponse('Email could not be sent', 500));
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Reset password
+// @route   PUT /api/auth/reset-password/:token
+// @access  Public
+exports.resetPassword = async (req, res, next) => {
+  try {
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return next(new ErrorResponse('Invalid token', 400));
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Update password
+// @route   PUT /api/auth/update-password
+// @access  Private
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check current password
+    if (!(await user.matchPassword(req.body.currentPassword))) {
+      return next(new ErrorResponse('Password is incorrect', 401));
+    }
+
+    user.password = req.body.newPassword;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Log user out / clear cookie
+// @route   GET /api/auth/logout
+// @access  Private
+exports.logout = async (req, res, next) => {
+  res.status(200).json({
+    success: true,
+    message: 'User logged out successfully',
+    data: {}
+  });
+};
+
+// @desc    SuperAdmin login
+// @route   POST /api/auth/superadmin/login
+// @access  Public
+exports.superAdminLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate email & password
+    if (!email || !password) {
+      return next(new ErrorResponse('Please provide an email and password', 400));
+    }
+
+    // Check if credentials match the environment variables
+    console.log(process.env.SUPER_ADMIN_EMAIL)
+    if (
+      email !== process.env.SUPER_ADMIN_EMAIL ||
+      password !== process.env.SUPER_ADMIN_PASSWORD
+    ) {
+      return next(new ErrorResponse('Invalid credentials', 401));
+    }
+
+    // Find or create SuperAdmin user
+    let superAdmin = await User.findOne({ role: 'super_admin' });
+
+    if (!superAdmin) {
+      superAdmin = await User.create({
+        name: 'Super Admin',
+        email: process.env.SUPER_ADMIN_EMAIL,
+        password: process.env.SUPER_ADMIN_PASSWORD,
+        role: 'super_admin',
+        isVerified: true
+      });
+    }
+
+    sendTokenResponse(superAdmin, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    SuperAdmin select company
+// @route   POST /api/auth/superadmin/select-company/:companyId
+// @access  Private/SuperAdmin
+exports.selectCompany = async (req, res, next) => {
+  try {
+    // Check if user is SuperAdmin
+    if (req.user.role !== 'super_admin') {
+      return next(new ErrorResponse('Not authorized', 403));
+    }
+
+    // Check if company exists
+    const company = await Company.findById(req.params.companyId);
+
+    if (!company) {
+      return next(new ErrorResponse('Company not found', 404));
+    }
+
+    // Generate token with selected company
+    const token = jwt.sign(
+      {
+        id: req.user.id,
+        companyId: company._id,
+        role: 'super_admin',
+        email: req.user.email,
+        name: req.user.name
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRE
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      token
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Helper function to get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  // Create token
+  const token = user.getSignedJwtToken();
+
+  res.status(statusCode).json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      companyId: user.companyId
+    }
+  });
+};

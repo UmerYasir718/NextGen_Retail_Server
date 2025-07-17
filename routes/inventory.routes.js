@@ -1,0 +1,64 @@
+const express = require('express');
+const {
+  getInventoryItems,
+  getInventoryItem,
+  createInventoryItem,
+  updateInventoryItem,
+  deleteInventoryItem,
+  uploadInventoryCSV,
+  getInventoryUploads,
+  getInventoryUpload,
+  reviewInventoryUpload,
+  getPurchaseInventory,
+  getSalePendingInventory,
+  getSaleInventory,
+  updateInventoryStatus
+} = require('../controllers/inventory.controller');
+
+const router = express.Router();
+
+// Import middleware
+const { protect, authorize, companyScope } = require('../middlewares/auth.middleware');
+
+// Apply protection to all routes
+router.use(protect);
+router.use(companyScope);
+
+// Inventory item routes
+router.route('/')
+  .get(authorize('company_admin', 'super_admin', 'store_manager', 'Staff', 'Auditor'), getInventoryItems)
+  .post(authorize('company_admin', 'super_admin', 'store_manager'), createInventoryItem);
+
+router.route('/:id')
+  .get(authorize('company_admin', 'super_admin', 'store_manager', 'Staff', 'Auditor'), getInventoryItem)
+  .put(authorize('company_admin', 'super_admin', 'store_manager'), updateInventoryItem)
+  .delete(authorize('company_admin', 'super_admin'), deleteInventoryItem);
+
+  
+// CSV upload routes
+router.route('/upload')
+  .post(authorize('company_admin', 'super_admin', 'store_manager'), uploadInventoryCSV);
+
+router.route('/uploads')
+  .get(authorize('company_admin', 'super_admin', 'store_manager'), getInventoryUploads);
+
+router.route('/uploads/:id')
+  .get(authorize('company_admin', 'super_admin', 'store_manager'), getInventoryUpload);
+
+router.route('/uploads/:id/review')
+  .put(authorize('company_admin', 'super_admin'), reviewInventoryUpload);
+
+// Inventory status routes
+router.route('/status/purchase')
+  .get(authorize('company_admin', 'super_admin', 'store_manager', 'Staff', 'Auditor'), getPurchaseInventory);
+
+router.route('/status/sale-pending')
+  .get(authorize('company_admin', 'super_admin', 'store_manager', 'Staff', 'Auditor'), getSalePendingInventory);
+
+router.route('/status/sale')
+  .get(authorize('company_admin', 'super_admin', 'store_manager', 'Staff', 'Auditor'), getSaleInventory);
+
+router.route('/:id/status')
+  .put(authorize('company_admin', 'super_admin', 'store_manager'), updateInventoryStatus);
+
+module.exports = router;

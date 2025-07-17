@@ -1,0 +1,689 @@
+{
+  "info": {
+    "_postman_id": "g7h8i9j0-k1l2-3456-mnop-qr7890123456",
+    "name": "Windsurf API - Inventory",
+    "description": "Inventory management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory?search=product&category=electronics&warehouseId={{warehouseId}}&binId={{binId}}&status=available&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "product",
+              "description": "Search by name or SKU"
+            },
+            {
+              "key": "category",
+              "value": "electronics",
+              "description": "Filter by category"
+            },
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "description": "Filter by warehouse"
+            },
+            {
+              "key": "binId",
+              "value": "{{binId}}",
+              "description": "Filter by bin"
+            },
+            {
+              "key": "status",
+              "value": "available",
+              "description": "Filter by status"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all inventory items with optional filters"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Inventory Item",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}"
+          ]
+        },
+        "description": "Get single inventory item by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Inventory Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Wireless Headphones\",\n  \"description\": \"Noise-cancelling wireless headphones\",\n  \"sku\": \"WH-001\",\n  \"barcode\": \"1234567890123\",\n  \"rfidTag\": \"RFID-WH001\",\n  \"category\": \"Electronics\",\n  \"subcategory\": \"Audio\",\n  \"quantity\": 10,\n  \"price\": 99.99,\n  \"cost\": 59.99,\n  \"binId\": \"{{binId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"shelfId\": \"{{shelfId}}\",\n  \"supplier\": {\n    \"name\": \"Audio Supplies Inc\",\n    \"contactInfo\": {\n      \"email\": \"orders@audiosupplies.com\",\n      \"phone\": \"123-456-7890\"\n    }\n  },\n  \"dimensions\": {\n    \"width\": 20,\n    \"height\": 25,\n    \"depth\": 10,\n    \"weight\": 0.3,\n    \"unit\": \"cm\",\n    \"weightUnit\": \"kg\"\n  },\n  \"minStockLevel\": 5,\n  \"maxStockLevel\": 50,\n  \"reorderPoint\": 8,\n  \"reorderQuantity\": 20,\n  \"status\": \"available\",\n  \"attributes\": {\n    \"color\": \"black\",\n    \"connectivity\": \"Bluetooth 5.0\",\n    \"batteryLife\": \"20 hours\"\n  },\n  \"images\": [\"https://example.com/images/headphones.jpg\"],\n  \"expiryDate\": null\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory"
+          ]
+        },
+        "description": "Create a new inventory item"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Inventory Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Premium Wireless Headphones\",\n  \"description\": \"Updated noise-cancelling wireless headphones\",\n  \"quantity\": 15,\n  \"price\": 129.99,\n  \"cost\": 69.99,\n  \"binId\": \"{{newBinId}}\",\n  \"minStockLevel\": 8,\n  \"maxStockLevel\": 60,\n  \"reorderPoint\": 12,\n  \"reorderQuantity\": 25,\n  \"status\": \"available\",\n  \"attributes\": {\n    \"color\": \"black\",\n    \"connectivity\": \"Bluetooth 5.2\",\n    \"batteryLife\": \"30 hours\",\n    \"waterResistant\": true\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}"
+          ]
+        },
+        "description": "Update inventory item details"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Inventory Item",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}"
+          ]
+        },
+        "description": "Delete an inventory item"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Inventory Quantity",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 25,\n  \"reason\": \"Manual adjustment\",\n  \"notes\": \"Correcting inventory count after physical audit\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/quantity",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}",
+            "quantity"
+          ]
+        },
+        "description": "Update inventory item quantity"
+      },
+      "response": []
+    },
+    {
+      "name": "Move Inventory Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"targetBinId\": \"{{targetBinId}}\",\n  \"quantity\": 5,\n  \"reason\": \"Reorganizing inventory\",\n  \"notes\": \"Moving items to more accessible location\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/move",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}",
+            "move"
+          ]
+        },
+        "description": "Move inventory item to a different bin"
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Inventory CSV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "/path/to/inventory.csv"
+            },
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/upload",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "upload"
+          ]
+        },
+        "description": "Upload inventory items via CSV file"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Pending Inventory Uploads",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/uploads?status=pending&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "uploads"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "pending",
+              "description": "Filter by status (pending, approved, rejected)"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get pending inventory CSV uploads"
+      },
+      "response": []
+    },
+    {
+      "name": "Approve Inventory Upload",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"notes\": \"Verified and approved inventory upload\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/uploads/{{uploadId}}/approve",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "uploads",
+            "{{uploadId}}",
+            "approve"
+          ]
+        },
+        "description": "Approve a pending inventory CSV upload"
+      },
+      "response": []
+    },
+    {
+      "name": "Reject Inventory Upload",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Data format issues\",\n  \"notes\": \"Please correct SKU format and resubmit\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/uploads/{{uploadId}}/reject",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "uploads",
+            "{{uploadId}}",
+            "reject"
+          ]
+        },
+        "description": "Reject a pending inventory CSV upload"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Low Stock Items",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/low-stock?warehouseId={{warehouseId}}&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "low-stock"
+          ],
+          "query": [
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "description": "Filter by warehouse"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get inventory items with stock below reorder point"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Inventory Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/statistics?warehouseId={{warehouseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "statistics"
+          ],
+          "query": [
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "description": "Filter by warehouse"
+            }
+          ]
+        },
+        "description": "Get inventory statistics and metrics"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Purchase Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/purchase?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "status",
+            "purchase"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search by name, SKU, tagId or description",
+              "disabled": true
+            },
+            {
+              "key": "category",
+              "value": "",
+              "description": "Filter by category",
+              "disabled": true
+            },
+            {
+              "key": "warehouseId",
+              "value": "",
+              "description": "Filter by warehouse",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get inventory items with purchase status"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sale Pending Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/sale-pending?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "status",
+            "sale-pending"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search by name, SKU, tagId or description",
+              "disabled": true
+            },
+            {
+              "key": "category",
+              "value": "",
+              "description": "Filter by category",
+              "disabled": true
+            },
+            {
+              "key": "warehouseId",
+              "value": "",
+              "description": "Filter by warehouse",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get inventory items with sale_pending status"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sale Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/sale?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "status",
+            "sale"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search by name, SKU, tagId or description",
+              "disabled": true
+            },
+            {
+              "key": "category",
+              "value": "",
+              "description": "Filter by category",
+              "disabled": true
+            },
+            {
+              "key": "warehouseId",
+              "value": "",
+              "description": "Filter by warehouse",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get inventory items with sale status"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Inventory Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryStatus\": \"sale_pending\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "{{inventoryId}}",
+            "status"
+          ]
+        },
+        "description": "Update inventory status (purchase, sale_pending, sale)"
+      },
+      "response": []
+    }
+  ]
+}

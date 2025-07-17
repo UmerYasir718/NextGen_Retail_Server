@@ -1,0 +1,405 @@
+{
+  "info": {
+    "_postman_id": "j0k1l2m3-n4o5-6789-pqrs-tu0123456789",
+    "name": "Windsurf API - Shipments",
+    "description": "Shipment management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Shipments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments?type=incoming&status=pending&warehouseId={{warehouseId}}&startDate=2023-01-01&endDate=2023-12-31&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "incoming",
+              "description": "Filter by shipment type (incoming, outgoing)"
+            },
+            {
+              "key": "status",
+              "value": "pending",
+              "description": "Filter by status (pending, in_transit, delivered, completed)"
+            },
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "description": "Filter by warehouse"
+            },
+            {
+              "key": "startDate",
+              "value": "2023-01-01",
+              "description": "Filter by start date"
+            },
+            {
+              "key": "endDate",
+              "value": "2023-12-31",
+              "description": "Filter by end date"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all shipments with optional filters"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Shipment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}"
+          ]
+        },
+        "description": "Get single shipment by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Incoming Shipment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"incoming\",\n  \"referenceNumber\": \"PO-12345\",\n  \"sourceType\": \"supplier\",\n  \"source\": {\n    \"name\": \"ABC Suppliers\",\n    \"contactInfo\": {\n      \"email\": \"orders@abcsuppliers.com\",\n      \"phone\": \"123-456-7890\",\n      \"address\": \"123 Supplier St, Vendor City, VC 12345\"\n    }\n  },\n  \"destinationWarehouseId\": \"{{warehouseId}}\",\n  \"expectedArrivalDate\": \"2023-06-15T14:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventoryId\": \"{{inventoryId1}}\",\n      \"quantity\": 10,\n      \"cost\": 59.99,\n      \"notes\": \"Regular order\"\n    },\n    {\n      \"name\": \"New Product\",\n      \"sku\": \"NP-001\",\n      \"barcode\": \"9876543210123\",\n      \"quantity\": 5,\n      \"cost\": 29.99,\n      \"category\": \"Electronics\",\n      \"notes\": \"New product not in inventory yet\"\n    }\n  ],\n  \"carrier\": {\n    \"name\": \"Fast Shipping Co\",\n    \"trackingNumber\": \"FS123456789\",\n    \"trackingUrl\": \"https://fastshipping.com/track/FS123456789\"\n  },\n  \"status\": \"pending\",\n  \"notes\": \"Regular monthly order\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments"
+          ]
+        },
+        "description": "Create a new incoming shipment"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Outgoing Shipment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"outgoing\",\n  \"referenceNumber\": \"SO-67890\",\n  \"sourceWarehouseId\": \"{{warehouseId}}\",\n  \"destinationType\": \"customer\",\n  \"destination\": {\n    \"name\": \"XYZ Corporation\",\n    \"contactInfo\": {\n      \"email\": \"receiving@xyzcorp.com\",\n      \"phone\": \"987-654-3210\",\n      \"address\": \"456 Customer Ave, Buyer City, BC 54321\"\n    }\n  },\n  \"expectedDeliveryDate\": \"2023-06-20T14:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventoryId\": \"{{inventoryId2}}\",\n      \"quantity\": 3,\n      \"price\": 99.99,\n      \"notes\": \"Expedited shipping requested\"\n    },\n    {\n      \"inventoryId\": \"{{inventoryId3}}\",\n      \"quantity\": 2,\n      \"price\": 49.99,\n      \"notes\": \"Standard shipping\"\n    }\n  ],\n  \"carrier\": {\n    \"name\": \"Global Logistics\",\n    \"trackingNumber\": \"GL987654321\",\n    \"trackingUrl\": \"https://globallogistics.com/track/GL987654321\"\n  },\n  \"status\": \"pending\",\n  \"notes\": \"Customer requested delivery before June 22\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments"
+          ]
+        },
+        "description": "Create a new outgoing shipment"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Shipment",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"referenceNumber\": \"PO-12345-A\",\n  \"expectedArrivalDate\": \"2023-06-16T10:00:00.000Z\",\n  \"carrier\": {\n    \"name\": \"Fast Shipping Co\",\n    \"trackingNumber\": \"FS123456789-A\",\n    \"trackingUrl\": \"https://fastshipping.com/track/FS123456789-A\"\n  },\n  \"notes\": \"Updated delivery date due to carrier delay\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}"
+          ]
+        },
+        "description": "Update shipment details"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Shipment",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}"
+          ]
+        },
+        "description": "Delete a shipment (only if status is pending)"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Shipment Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_transit\",\n  \"notes\": \"Shipment picked up by carrier\",\n  \"actualDate\": \"2023-06-12T09:30:00.000Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}",
+            "status"
+          ]
+        },
+        "description": "Update shipment status"
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Shipment Document",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "document",
+              "type": "file",
+              "src": "/path/to/invoice.pdf"
+            },
+            {
+              "key": "type",
+              "value": "invoice",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Supplier invoice for PO-12345",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/documents",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}",
+            "documents"
+          ]
+        },
+        "description": "Upload a document related to a shipment"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Shipment Documents",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/documents",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}",
+            "documents"
+          ]
+        },
+        "description": "Get all documents related to a shipment"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Shipment Document",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/documents/{{documentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "{{shipmentId}}",
+            "documents",
+            "{{documentId}}"
+          ]
+        },
+        "description": "Delete a document related to a shipment"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Shipment Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipments/statistics?startDate=2023-01-01&endDate=2023-12-31&warehouseId={{warehouseId}}&type=incoming",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "shipments",
+            "statistics"
+          ],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2023-01-01",
+              "description": "Start date for statistics"
+            },
+            {
+              "key": "endDate",
+              "value": "2023-12-31",
+              "description": "End date for statistics"
+            },
+            {
+              "key": "warehouseId",
+              "value": "{{warehouseId}}",
+              "description": "Filter by warehouse"
+            },
+            {
+              "key": "type",
+              "value": "incoming",
+              "description": "Filter by shipment type"
+            }
+          ]
+        },
+        "description": "Get shipment statistics and metrics"
+      },
+      "response": []
+    }
+  ]
+}

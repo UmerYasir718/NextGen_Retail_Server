@@ -1,0 +1,199 @@
+{
+  "info": {
+    "_postman_id": "c3d4e5f6-g7h8-9012-ijkl-mn3456789012",
+    "name": "Windsurf API - Companies",
+    "description": "Company management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Companies",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies?search=acme&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "acme",
+              "description": "Search by name"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all companies (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Company",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}"
+          ]
+        },
+        "description": "Get single company by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"email\": \"info@acme.com\",\n  \"phone\": \"123-456-7890\",\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Anytown\",\n    \"state\": \"CA\",\n    \"zipCode\": \"12345\",\n    \"country\": \"USA\"\n  },\n  \"website\": \"https://acme.com\",\n  \"industry\": \"Manufacturing\",\n  \"planId\": \"{{planId}}\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies"
+          ]
+        },
+        "description": "Create a new company (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Company",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Acme Corporation Updated\",\n  \"phone\": \"987-654-3210\",\n  \"address\": {\n    \"street\": \"456 Oak Ave\",\n    \"city\": \"Newtown\",\n    \"state\": \"NY\",\n    \"zipCode\": \"54321\",\n    \"country\": \"USA\"\n  },\n  \"website\": \"https://acme-updated.com\",\n  \"industry\": \"Technology\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}"
+          ]
+        },
+        "description": "Update company details"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Company",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}"
+          ]
+        },
+        "description": "Delete a company (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Company Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/companies/{{companyId}}/dashboard",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "companies",
+            "{{companyId}}",
+            "dashboard"
+          ]
+        },
+        "description": "Get company dashboard statistics"
+      },
+      "response": []
+    }
+  ]
+}

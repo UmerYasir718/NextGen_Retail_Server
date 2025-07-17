@@ -1,0 +1,223 @@
+{
+  "info": {
+    "_postman_id": "d4e5f6g7-h8i9-0123-jklm-no4567890123",
+    "name": "Windsurf API - Plans",
+    "description": "Subscription plan management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Plans",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/plans",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans"
+          ]
+        },
+        "description": "Get all subscription plans"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Plan",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans",
+            "{{planId}}"
+          ]
+        },
+        "description": "Get single plan by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Enterprise Plan\",\n  \"description\": \"For large enterprises with multiple warehouses\",\n  \"price\": 499.99,\n  \"billingCycle\": \"monthly\",\n  \"features\": [\n    \"Unlimited warehouses\",\n    \"Unlimited users\",\n    \"24/7 support\",\n    \"Advanced analytics\",\n    \"AI forecasting\"\n  ],\n  \"limits\": {\n    \"warehouseCount\": -1,\n    \"userCount\": -1,\n    \"inventoryCount\": -1\n  },\n  \"stripePriceId\": \"price_1234567890\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/plans",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans"
+          ]
+        },
+        "description": "Create a new subscription plan (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Plan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Enterprise Plus Plan\",\n  \"description\": \"Enhanced enterprise plan with additional features\",\n  \"price\": 599.99,\n  \"features\": [\n    \"Unlimited warehouses\",\n    \"Unlimited users\",\n    \"24/7 priority support\",\n    \"Advanced analytics\",\n    \"AI forecasting\",\n    \"Custom integrations\"\n  ],\n  \"limits\": {\n    \"warehouseCount\": -1,\n    \"userCount\": -1,\n    \"inventoryCount\": -1\n  },\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans",
+            "{{planId}}"
+          ]
+        },
+        "description": "Update plan details (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Plan",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans",
+            "{{planId}}"
+          ]
+        },
+        "description": "Delete a plan (SuperAdmin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Checkout Session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"successUrl\": \"https://yourwebsite.com/success\",\n  \"cancelUrl\": \"https://yourwebsite.com/cancel\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/plans/checkout/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans",
+            "checkout",
+            "{{planId}}"
+          ]
+        },
+        "description": "Create Stripe checkout session for plan subscription"
+      },
+      "response": []
+    },
+    {
+      "name": "Stripe Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Stripe-Signature",
+            "value": "{{stripeSignature}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"evt_1234567890\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1609459200,\n  \"data\": {\n    \"object\": {\n      \"id\": \"sub_1234567890\",\n      \"object\": \"subscription\",\n      \"status\": \"active\",\n      \"customer\": \"cus_1234567890\",\n      \"items\": {\n        \"data\": [\n          {\n            \"id\": \"si_1234567890\",\n            \"price\": {\n              \"id\": \"price_1234567890\"\n            }\n          }\n        ]\n      },\n      \"metadata\": {\n        \"companyId\": \"{{companyId}}\"\n      }\n    }\n  },\n  \"type\": \"customer.subscription.created\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/plans/webhook",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "plans",
+            "webhook"
+          ]
+        },
+        "description": "Stripe webhook handler for subscription events"
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,0 +1,302 @@
+{
+  "info": {
+    "_postman_id": "h8i9j0k1-l2m3-4567-nopq-rs8901234567",
+    "name": "Windsurf API - Audit Logs",
+    "description": "Audit log management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Audit Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs?action=inventory.update&entityType=inventory&entityId={{inventoryId}}&userId={{userId}}&startDate=2023-01-01&endDate=2023-12-31&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "action",
+              "value": "inventory.update",
+              "description": "Filter by action type"
+            },
+            {
+              "key": "entityType",
+              "value": "inventory",
+              "description": "Filter by entity type"
+            },
+            {
+              "key": "entityId",
+              "value": "{{inventoryId}}",
+              "description": "Filter by entity ID"
+            },
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "Filter by user ID"
+            },
+            {
+              "key": "startDate",
+              "value": "2023-01-01",
+              "description": "Filter by start date"
+            },
+            {
+              "key": "endDate",
+              "value": "2023-12-31",
+              "description": "Filter by end date"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all audit logs with optional filters"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Audit Log",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs/{{auditLogId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs",
+            "{{auditLogId}}"
+          ]
+        },
+        "description": "Get single audit log by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Audit Log",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"inventory.manual_update\",\n  \"entityType\": \"inventory\",\n  \"entityId\": \"{{inventoryId}}\",\n  \"details\": {\n    \"previousQuantity\": 10,\n    \"newQuantity\": 15,\n    \"reason\": \"Manual adjustment after physical count\"\n  },\n  \"ipAddress\": \"192.168.1.100\",\n  \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs"
+          ]
+        },
+        "description": "Create a new audit log entry (typically done automatically by the system)"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Audit Log Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs/statistics?startDate=2023-01-01&endDate=2023-12-31&entityType=inventory",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs",
+            "statistics"
+          ],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2023-01-01",
+              "description": "Start date for statistics"
+            },
+            {
+              "key": "endDate",
+              "value": "2023-12-31",
+              "description": "End date for statistics"
+            },
+            {
+              "key": "entityType",
+              "value": "inventory",
+              "description": "Filter by entity type"
+            }
+          ]
+        },
+        "description": "Get audit log statistics and metrics"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Entity Audit History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs/entity/{{entityType}}/{{entityId}}?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs",
+            "entity",
+            "{{entityType}}",
+            "{{entityId}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get audit history for a specific entity"
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Activity",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs/user/{{userId}}?startDate=2023-01-01&endDate=2023-12-31&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs",
+            "user",
+            "{{userId}}"
+          ],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2023-01-01",
+              "description": "Filter by start date"
+            },
+            {
+              "key": "endDate",
+              "value": "2023-12-31",
+              "description": "Filter by end date"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get audit logs for a specific user"
+      },
+      "response": []
+    },
+    {
+      "name": "Clean Old Audit Logs",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"olderThan\": \"2023-01-01\",\n  \"entityTypes\": [\"inventory\", \"user\"],\n  \"excludeActions\": [\"user.create\", \"user.delete\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/audit-logs/cleanup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit-logs",
+            "cleanup"
+          ]
+        },
+        "description": "Clean up old audit logs (Admin only)"
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "info": {
+    "_postman_id": "i9j0k1l2-m3n4-5678-opqr-st9012345678",
+    "name": "Windsurf API - Notifications",
+    "description": "Notification management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get User Notifications",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications?isRead=false&type=inventory&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications"
+          ],
+          "query": [
+            {
+              "key": "isRead",
+              "value": "false",
+              "description": "Filter by read status"
+            },
+            {
+              "key": "type",
+              "value": "inventory",
+              "description": "Filter by notification type"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get notifications for the current user"
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Notifications (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/all?userId={{userId}}&isRead=false&type=inventory&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "all"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "Filter by user ID"
+            },
+            {
+              "key": "isRead",
+              "value": "false",
+              "description": "Filter by read status"
+            },
+            {
+              "key": "type",
+              "value": "inventory",
+              "description": "Filter by notification type"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all notifications (Admin only)"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Notification",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/{{notificationId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "{{notificationId}}"
+          ]
+        },
+        "description": "Get single notification by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"title\": \"Low Stock Alert\",\n  \"message\": \"Inventory item WH-001 is below reorder point\",\n  \"type\": \"inventory\",\n  \"priority\": \"high\",\n  \"data\": {\n    \"inventoryId\": \"{{inventoryId}}\",\n    \"currentQuantity\": 3,\n    \"reorderPoint\": 5\n  },\n  \"isRead\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications"
+          ]
+        },
+        "description": "Create a new notification"
+      },
+      "response": []
+    },
+    {
+      "name": "Mark Notification as Read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "{{notificationId}}",
+            "read"
+          ]
+        },
+        "description": "Mark a notification as read"
+      },
+      "response": []
+    },
+    {
+      "name": "Mark All Notifications as Read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"inventory\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/read-all",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "read-all"
+          ]
+        },
+        "description": "Mark all notifications as read (optional type filter)"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Notification",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/{{notificationId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "{{notificationId}}"
+          ]
+        },
+        "description": "Delete a notification"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete All Notifications",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"olderThan\": \"2023-01-01\",\n  \"type\": \"inventory\",\n  \"isRead\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/delete-all",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "delete-all"
+          ]
+        },
+        "description": "Delete multiple notifications with filters"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Unread Notification Count",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notifications/unread-count",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notifications",
+            "unread-count"
+          ]
+        },
+        "description": "Get count of unread notifications for current user"
+      },
+      "response": []
+    }
+  ]
+}

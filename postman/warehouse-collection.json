@@ -1,0 +1,327 @@
+{
+  "info": {
+    "_postman_id": "e5f6g7h8-i9j0-1234-klmn-op5678901234",
+    "name": "Windsurf API - Warehouses",
+    "description": "Warehouse management endpoints for Windsurf Warehouse Inventory Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get All Warehouses",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses?search=main&isActive=true&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "main",
+              "description": "Search by name"
+            },
+            {
+              "key": "isActive",
+              "value": "true",
+              "description": "Filter by active status"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page"
+            }
+          ]
+        },
+        "description": "Get all warehouses for the company"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Warehouse",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}"
+          ]
+        },
+        "description": "Get single warehouse by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Warehouse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Main Warehouse\",\n  \"description\": \"Primary storage facility\",\n  \"location\": {\n    \"address\": \"123 Storage Blvd\",\n    \"city\": \"Warehouse City\",\n    \"state\": \"WH\",\n    \"zipCode\": \"12345\",\n    \"country\": \"USA\",\n    \"coordinates\": {\n      \"latitude\": 37.7749,\n      \"longitude\": -122.4194\n    }\n  },\n  \"contactInfo\": {\n    \"name\": \"John Manager\",\n    \"email\": \"manager@example.com\",\n    \"phone\": \"123-456-7890\"\n  },\n  \"capacity\": 10000,\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses"
+          ]
+        },
+        "description": "Create a new warehouse"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Warehouse",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Main Warehouse Updated\",\n  \"description\": \"Updated primary storage facility\",\n  \"location\": {\n    \"address\": \"456 Storage Ave\",\n    \"city\": \"New Warehouse City\",\n    \"state\": \"WH\",\n    \"zipCode\": \"54321\",\n    \"country\": \"USA\",\n    \"coordinates\": {\n      \"latitude\": 37.7750,\n      \"longitude\": -122.4195\n    }\n  },\n  \"contactInfo\": {\n    \"name\": \"Jane Manager\",\n    \"email\": \"jane@example.com\",\n    \"phone\": \"987-654-3210\"\n  },\n  \"capacity\": 15000,\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}"
+          ]
+        },
+        "description": "Update warehouse details"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Warehouse",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}"
+          ]
+        },
+        "description": "Delete a warehouse"
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Zones in Warehouse",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}/zones",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}",
+            "zones"
+          ]
+        },
+        "description": "Get all zones in a warehouse"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Zone in Warehouse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Receiving Zone\",\n  \"description\": \"Area for receiving shipments\",\n  \"category\": \"Receiving\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}/zones",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}",
+            "zones"
+          ]
+        },
+        "description": "Create a new zone in a warehouse"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Zone",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}/zones/{{zoneId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}",
+            "zones",
+            "{{zoneId}}"
+          ]
+        },
+        "description": "Get single zone by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Zone",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Receiving Zone Updated\",\n  \"description\": \"Updated area for receiving shipments\",\n  \"category\": \"Receiving\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}/zones/{{zoneId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}",
+            "zones",
+            "{{zoneId}}"
+          ]
+        },
+        "description": "Update zone details"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Zone",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/warehouses/{{warehouseId}}/zones/{{zoneId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "warehouses",
+            "{{warehouseId}}",
+            "zones",
+            "{{zoneId}}"
+          ]
+        },
+        "description": "Delete a zone"
+      },
+      "response": []
+    }
+  ]
+}

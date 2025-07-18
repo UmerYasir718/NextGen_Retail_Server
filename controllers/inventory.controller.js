@@ -1,16 +1,18 @@
-const path = require('path');
-const fs = require('fs');
-const csv = require('csv-parser');
-const Inventory = require('../models/inventory.model');
-const InventoryUpload = require('../models/inventoryUpload.model');
-const InventoryTemp = require('../models/inventoryTemp.model');
-const Warehouse = require('../models/warehouse.model');
-const Zone = require('../models/zone.model');
-const Shelf = require('../models/shelf.model');
-const Bin = require('../models/bin.model');
-const ErrorResponse = require('../utils/errorResponse');
-const multer = require('multer');
-const cloudinary = require('../utils/cloudinary');
+const path = require("path");
+const fs = require("fs");
+const csv = require("csv-parser");
+const Inventory = require("../models/inventory.model");
+const InventoryUpload = require("../models/inventoryUpload.model");
+const InventoryTemp = require("../models/inventoryTemp.model");
+const Warehouse = require("../models/warehouse.model");
+const Zone = require("../models/zone.model");
+const Shelf = require("../models/shelf.model");
+const Bin = require("../models/bin.model");
+const AuditLog = require("../models/auditLog.model");
+const ErrorResponse = require("../utils/errorResponse");
+const multer = require("multer");
+const cloudinary = require("../utils/cloudinary");
+const { getLocationDetails } = require("../utils/locationHelper");
 
 // @desc    Get inventory items with purchase status
 // @route   GET /api/inventory/status/purchase
@@ -18,9 +20,9 @@ const cloudinary = require('../utils/cloudinary');
 exports.getPurchaseInventory = async (req, res, next) => {
   try {
     // Build query
-    let query = { 
+    let query = {
       companyId: req.user.companyId,
-      inventoryStatus: 'purchase'
+      inventoryStatus: "purchase",
     };
 
     // Filter by category if provided
@@ -30,17 +32,17 @@ exports.getPurchaseInventory = async (req, res, next) => {
 
     // Filter by warehouse if provided
     if (req.query.warehouseId) {
-      query['location.warehouseId'] = req.query.warehouseId;
+      query["location.warehouseId"] = req.query.warehouseId;
     }
 
     // Filter by search term if provided
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { name: searchRegex },
         { sku: searchRegex },
         { tagId: searchRegex },
-        { description: searchRegex }
+        { description: searchRegex },
       ];
     }
 
@@ -63,14 +65,14 @@ exports.getPurchaseInventory = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -78,7 +80,7 @@ exports.getPurchaseInventory = async (req, res, next) => {
       success: true,
       count: inventory.length,
       pagination,
-      data: inventory
+      data: inventory,
     });
   } catch (err) {
     next(err);
@@ -91,9 +93,9 @@ exports.getPurchaseInventory = async (req, res, next) => {
 exports.getSalePendingInventory = async (req, res, next) => {
   try {
     // Build query
-    let query = { 
+    let query = {
       companyId: req.user.companyId,
-      inventoryStatus: 'sale_pending'
+      inventoryStatus: "sale_pending",
     };
 
     // Filter by category if provided
@@ -103,17 +105,17 @@ exports.getSalePendingInventory = async (req, res, next) => {
 
     // Filter by warehouse if provided
     if (req.query.warehouseId) {
-      query['location.warehouseId'] = req.query.warehouseId;
+      query["location.warehouseId"] = req.query.warehouseId;
     }
 
     // Filter by search term if provided
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { name: searchRegex },
         { sku: searchRegex },
         { tagId: searchRegex },
-        { description: searchRegex }
+        { description: searchRegex },
       ];
     }
 
@@ -136,14 +138,14 @@ exports.getSalePendingInventory = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -151,7 +153,7 @@ exports.getSalePendingInventory = async (req, res, next) => {
       success: true,
       count: inventory.length,
       pagination,
-      data: inventory
+      data: inventory,
     });
   } catch (err) {
     next(err);
@@ -164,9 +166,9 @@ exports.getSalePendingInventory = async (req, res, next) => {
 exports.getSaleInventory = async (req, res, next) => {
   try {
     // Build query
-    let query = { 
+    let query = {
       companyId: req.user.companyId,
-      inventoryStatus: 'sale'
+      inventoryStatus: "sale",
     };
 
     // Filter by category if provided
@@ -176,17 +178,17 @@ exports.getSaleInventory = async (req, res, next) => {
 
     // Filter by warehouse if provided
     if (req.query.warehouseId) {
-      query['location.warehouseId'] = req.query.warehouseId;
+      query["location.warehouseId"] = req.query.warehouseId;
     }
 
     // Filter by search term if provided
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { name: searchRegex },
         { sku: searchRegex },
         { tagId: searchRegex },
-        { description: searchRegex }
+        { description: searchRegex },
       ];
     }
 
@@ -209,14 +211,14 @@ exports.getSaleInventory = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -224,7 +226,7 @@ exports.getSaleInventory = async (req, res, next) => {
       success: true,
       count: inventory.length,
       pagination,
-      data: inventory
+      data: inventory,
     });
   } catch (err) {
     next(err);
@@ -237,23 +239,32 @@ exports.getSaleInventory = async (req, res, next) => {
 exports.updateInventoryStatus = async (req, res, next) => {
   try {
     const { inventoryStatus } = req.body;
-    
+
     // Validate status
-    if (!inventoryStatus || !['purchase', 'sale_pending', 'sale'].includes(inventoryStatus)) {
+    if (
+      !inventoryStatus ||
+      !["purchase", "sale_pending", "sale"].includes(inventoryStatus)
+    ) {
       return next(
-        new ErrorResponse(`Invalid inventory status. Must be one of: purchase, sale_pending, sale`, 400)
+        new ErrorResponse(
+          `Invalid inventory status. Must be one of: purchase, sale_pending, sale`,
+          400
+        )
       );
     }
 
     // Find inventory item
     const item = await Inventory.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!item) {
       return next(
-        new ErrorResponse(`Inventory item not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Inventory item not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
 
@@ -261,12 +272,12 @@ exports.updateInventoryStatus = async (req, res, next) => {
     item.inventoryStatus = inventoryStatus;
     item.updatedBy = req.user.id;
     item.updatedAt = Date.now();
-    
+
     await item.save();
 
     res.status(200).json({
       success: true,
-      data: item
+      data: item,
     });
   } catch (err) {
     next(err);
@@ -278,7 +289,7 @@ exports.updateInventoryStatus = async (req, res, next) => {
 // @access  Private
 exports.getInventoryItems = async (req, res, next) => {
   try {
-    console.log("DG SAB")
+    console.log("DG SAB");
     // Build query
     let query = { companyId: req.user.companyId };
 
@@ -294,17 +305,17 @@ exports.getInventoryItems = async (req, res, next) => {
 
     // Filter by warehouse if provided
     if (req.query.warehouseId) {
-      query['location.warehouseId'] = req.query.warehouseId;
+      query["location.warehouseId"] = req.query.warehouseId;
     }
 
     // Filter by search term if provided
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { name: searchRegex },
         { sku: searchRegex },
         { tagId: searchRegex },
-        { description: searchRegex }
+        { description: searchRegex },
       ];
     }
 
@@ -327,14 +338,14 @@ exports.getInventoryItems = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -342,7 +353,7 @@ exports.getInventoryItems = async (req, res, next) => {
       success: true,
       count: inventory.length,
       pagination,
-      data: inventory
+      data: inventory,
     });
   } catch (err) {
     next(err);
@@ -356,18 +367,21 @@ exports.getInventoryItem = async (req, res, next) => {
   try {
     const item = await Inventory.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!item) {
       return next(
-        new ErrorResponse(`Inventory item not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Inventory item not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
 
     res.status(200).json({
       success: true,
-      data: item
+      data: item,
     });
   } catch (err) {
     next(err);
@@ -386,7 +400,7 @@ exports.createInventoryItem = async (req, res, next) => {
     // Check if item with this SKU already exists
     const existingItem = await Inventory.findOne({
       sku: req.body.sku,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (existingItem) {
@@ -398,9 +412,24 @@ exports.createInventoryItem = async (req, res, next) => {
     // Create inventory item
     const item = await Inventory.create(req.body);
 
+    // Update bin capacity utilization if bin is specified
+    if (item.location && item.location.binId) {
+      const bin = await Bin.findById(item.location.binId);
+      if (bin) {
+        // Update bin's current items count
+        const inventoryItems = await Inventory.find({ "location.binId": bin._id });
+        let totalQuantity = 0;
+        inventoryItems.forEach(invItem => {
+          totalQuantity += invItem.quantity || 0;
+        });
+        
+        // No need to save bin as we're just updating utilization in the GET APIs
+      }
+    }
+
     res.status(201).json({
       success: true,
-      data: item
+      data: item,
     });
   } catch (err) {
     next(err);
@@ -415,29 +444,120 @@ exports.updateInventoryItem = async (req, res, next) => {
     // Set updated by
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
+    req.body.saleDate = null;
+    // Set saleDate if inventory status is changed to sale
+    if (req.body.inventoryStatus === "sale") {
+      req.body.saleDate = Date.now();
+    }
+
+    // Get the original item before update to track location changes
+    const originalItem = await Inventory.findOne({
+      _id: req.params.id,
+      companyId: req.user.companyId,
+    });
+
+    if (!originalItem) {
+      return next(
+        new ErrorResponse(
+          `Inventory item not found with id of ${req.params.id}`,
+          404
+        )
+      );
+    }
 
     // Find and update item
     const item = await Inventory.findOneAndUpdate(
       {
         _id: req.params.id,
-        companyId: req.user.companyId
+        companyId: req.user.companyId,
       },
       req.body,
       {
         new: true,
-        runValidators: true
+        runValidators: true,
       }
     );
 
-    if (!item) {
-      return next(
-        new ErrorResponse(`Inventory item not found with id of ${req.params.id}`, 404)
-      );
+    // Check if location has changed
+    const locationChanged = (
+      (originalItem.location?.binId?.toString() !== item.location?.binId?.toString()) ||
+      (originalItem.location?.shelfId?.toString() !== item.location?.shelfId?.toString()) ||
+      (originalItem.location?.zoneId?.toString() !== item.location?.zoneId?.toString()) ||
+      (originalItem.location?.warehouseId?.toString() !== item.location?.warehouseId?.toString()) ||
+      (originalItem.quantity !== item.quantity)
+    );
+
+    // If location or quantity changed, update utilization for both old and new locations
+    if (locationChanged) {
+      // Update old bin utilization if it existed
+      if (originalItem.location && originalItem.location.binId) {
+        // No need to update bin directly as utilization is calculated on-the-fly in GET APIs
+      }
+
+      // Update new bin utilization if it exists
+      if (item.location && item.location.binId) {
+        // No need to update bin directly as utilization is calculated on-the-fly in GET APIs
+      }
+      
+      // Create audit log for location change
+      try {
+        // Get warehouse, zone, shelf, bin names for better readability in logs
+        const oldLocationDetails = await getLocationDetails(originalItem.location);
+        const newLocationDetails = await getLocationDetails(item.location);
+        
+        // Create audit log entry
+        await AuditLog.create({
+          userId: req.user.id,
+          userName: req.user.name,
+          userRole: req.user.role,
+          action: 'Update',
+          module: 'Inventory',
+          description: `Updated location for inventory item ${item.name} (SKU: ${item.sku})`,
+          details: {
+            inventoryId: item._id,
+            itemName: item.name,
+            sku: item.sku,
+            previousLocation: {
+              warehouseId: originalItem.location?.warehouseId,
+              warehouseName: oldLocationDetails.warehouseName,
+              zoneId: originalItem.location?.zoneId,
+              zoneName: oldLocationDetails.zoneName,
+              shelfId: originalItem.location?.shelfId,
+              shelfName: oldLocationDetails.shelfName,
+              binId: originalItem.location?.binId,
+              binName: oldLocationDetails.binName,
+              quantity: originalItem.quantity
+            },
+            currentLocation: {
+              warehouseId: item.location?.warehouseId,
+              warehouseName: newLocationDetails.warehouseName,
+              zoneId: item.location?.zoneId,
+              zoneName: newLocationDetails.zoneName,
+              shelfId: item.location?.shelfId,
+              shelfName: newLocationDetails.shelfName,
+              binId: item.location?.binId,
+              binName: newLocationDetails.binName,
+              quantity: item.quantity
+            },
+            changedBy: {
+              userId: req.user.id,
+              userName: req.user.name,
+              userRole: req.user.role,
+              timestamp: Date.now()
+            }
+          },
+          ipAddress: req.ip,
+          companyId: req.user.companyId,
+        });
+      } catch (auditError) {
+        console.error('Error creating audit log:', auditError);
+        // Don't fail the main operation if audit logging fails
+      }
     }
 
     res.status(200).json({
       success: true,
-      data: item
+      data: item,
     });
   } catch (err) {
     next(err);
@@ -451,20 +571,33 @@ exports.deleteInventoryItem = async (req, res, next) => {
   try {
     const item = await Inventory.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!item) {
       return next(
-        new ErrorResponse(`Inventory item not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Inventory item not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
-await Inventory.findByIdAndDelete(item._id);
+
+    // Store location information before deletion to update utilization
+    const locationInfo = item.location;
+    
+    // Delete the inventory item
+    await Inventory.findByIdAndDelete(item._id);
+
+    // Update bin utilization if bin was specified
+    if (locationInfo && locationInfo.binId) {
+      // No need to update bin directly as utilization is calculated on-the-fly in GET APIs
+    }
 
     res.status(200).json({
       success: true,
       data: {},
-      message: 'Zone deleted successfully'
+      message: "Inventory item deleted successfully",
     });
   } catch (err) {
     next(err);
@@ -477,29 +610,31 @@ await Inventory.findByIdAndDelete(item._id);
 exports.uploadInventoryCSV = async (req, res, next) => {
   try {
     if (!req.files || !req.files.file) {
-      return next(new ErrorResponse('Please upload a CSV file', 400));
+      return next(new ErrorResponse("Please upload a CSV file", 400));
     }
 
     const file = req.files.file;
 
     // Check if it's a CSV file
-    if (file.mimetype !== 'text/csv') {
-      return next(new ErrorResponse('Please upload a CSV file', 400));
+    if (file.mimetype !== "text/csv") {
+      return next(new ErrorResponse("Please upload a CSV file", 400));
     }
 
     // Check file size (limit to 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      return next(new ErrorResponse('File size cannot exceed 2MB', 400));
+      return next(new ErrorResponse("File size cannot exceed 2MB", 400));
     }
 
     // Create unique filename
-    const fileName = `inventory_${req.user.companyId}_${Date.now()}${path.parse(file.name).ext}`;
+    const fileName = `inventory_${req.user.companyId}_${Date.now()}${
+      path.parse(file.name).ext
+    }`;
 
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
-      folder: 'inventory_uploads',
-      resource_type: 'raw',
-      public_id: fileName.split('.')[0]
+      folder: "inventory_uploads",
+      resource_type: "raw",
+      public_id: fileName.split(".")[0],
     });
 
     // Create upload record
@@ -507,7 +642,7 @@ exports.uploadInventoryCSV = async (req, res, next) => {
       fileName,
       filePath: result.secure_url,
       companyId: req.user.companyId,
-      uploadedBy: req.user.id
+      uploadedBy: req.user.id,
     });
 
     // Trigger CSV processing (would be handled by a cron job in production)
@@ -516,7 +651,7 @@ exports.uploadInventoryCSV = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: upload
+      data: upload,
     });
   } catch (err) {
     next(err);
@@ -529,16 +664,16 @@ exports.uploadInventoryCSV = async (req, res, next) => {
 exports.getInventoryUploads = async (req, res, next) => {
   try {
     const uploads = await InventoryUpload.find({
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     })
       .sort({ uploadedAt: -1 })
-      .populate('uploadedBy', 'name email')
-      .populate('reviewedBy', 'name email');
+      .populate("uploadedBy", "name email")
+      .populate("reviewedBy", "name email");
 
     res.status(200).json({
       success: true,
       count: uploads.length,
-      data: uploads
+      data: uploads,
     });
   } catch (err) {
     next(err);
@@ -552,10 +687,10 @@ exports.getInventoryUpload = async (req, res, next) => {
   try {
     const upload = await InventoryUpload.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     })
-      .populate('uploadedBy', 'name email')
-      .populate('reviewedBy', 'name email');
+      .populate("uploadedBy", "name email")
+      .populate("reviewedBy", "name email");
 
     if (!upload) {
       return next(
@@ -565,15 +700,15 @@ exports.getInventoryUpload = async (req, res, next) => {
 
     // Get temp inventory items for this upload
     const tempItems = await InventoryTemp.find({
-      uploadId: upload._id
+      uploadId: upload._id,
     }).sort({ rowNumber: 1 });
 
     res.status(200).json({
       success: true,
       data: {
         upload,
-        items: tempItems
-      }
+        items: tempItems,
+      },
     });
   } catch (err) {
     next(err);
@@ -587,13 +722,13 @@ exports.reviewInventoryUpload = async (req, res, next) => {
   try {
     const { status } = req.body;
 
-    if (!['Approved', 'Rejected'].includes(status)) {
-      return next(new ErrorResponse('Invalid status', 400));
+    if (!["Approved", "Rejected"].includes(status)) {
+      return next(new ErrorResponse("Invalid status", 400));
     }
 
     const upload = await InventoryUpload.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!upload) {
@@ -602,10 +737,8 @@ exports.reviewInventoryUpload = async (req, res, next) => {
       );
     }
 
-    if (upload.status !== 'Processing') {
-      return next(
-        new ErrorResponse(`Upload is not ready for review`, 400)
-      );
+    if (upload.status !== "Processing") {
+      return next(new ErrorResponse(`Upload is not ready for review`, 400));
     }
 
     // Update upload status
@@ -615,17 +748,17 @@ exports.reviewInventoryUpload = async (req, res, next) => {
     await upload.save();
 
     // If approved, move items to main inventory
-    if (status === 'Approved') {
+    if (status === "Approved") {
       const tempItems = await InventoryTemp.find({
         uploadId: upload._id,
-        status: 'Valid'
+        status: "Valid",
       });
 
       for (const tempItem of tempItems) {
         // Check if item with this SKU already exists
         let existingItem = await Inventory.findOne({
           sku: tempItem.sku,
-          companyId: req.user.companyId
+          companyId: req.user.companyId,
         });
 
         if (existingItem) {
@@ -648,7 +781,7 @@ exports.reviewInventoryUpload = async (req, res, next) => {
             price: tempItem.price,
             supplier: tempItem.supplier,
             companyId: req.user.companyId,
-            createdBy: req.user.id
+            createdBy: req.user.id,
           });
         }
       }
@@ -656,7 +789,7 @@ exports.reviewInventoryUpload = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: upload
+      data: upload,
     });
   } catch (err) {
     next(err);
@@ -667,19 +800,21 @@ exports.reviewInventoryUpload = async (req, res, next) => {
 async function processCSV(uploadId) {
   try {
     const upload = await InventoryUpload.findById(uploadId);
-    
+
     if (!upload) {
       console.error(`Upload not found with id of ${uploadId}`);
       return;
     }
 
     // Update status to Processing
-    upload.status = 'Processing';
+    upload.status = "Processing";
     await upload.save();
 
     // Download CSV file from Cloudinary
-    const response = await axios.get(upload.filePath, { responseType: 'stream' });
-    
+    const response = await axios.get(upload.filePath, {
+      responseType: "stream",
+    });
+
     let rowNumber = 0;
     let validItems = 0;
     let errorItems = 0;
@@ -687,13 +822,13 @@ async function processCSV(uploadId) {
     // Process CSV stream
     response.data
       .pipe(csv())
-      .on('data', async (row) => {
+      .on("data", async (row) => {
         rowNumber++;
-        
+
         try {
           // Validate required fields
           if (!row.name || !row.sku || !row.category || !row.quantity) {
-            throw new Error('Missing required fields');
+            throw new Error("Missing required fields");
           }
 
           // Create temp inventory item
@@ -702,34 +837,34 @@ async function processCSV(uploadId) {
             rowNumber,
             name: row.name,
             sku: row.sku,
-            tagId: row.tagId || '',
-            description: row.description || '',
+            tagId: row.tagId || "",
+            description: row.description || "",
             category: row.category,
             quantity: parseInt(row.quantity) || 0,
             threshold: parseInt(row.threshold) || 5,
             location: {
-              warehouseName: row.warehouseName || '',
-              zoneName: row.zoneName || '',
-              shelfName: row.shelfName || '',
-              binName: row.binName || ''
+              warehouseName: row.warehouseName || "",
+              zoneName: row.zoneName || "",
+              shelfName: row.shelfName || "",
+              binName: row.binName || "",
             },
             price: {
               cost: parseFloat(row.cost) || 0,
-              retail: parseFloat(row.retail) || 0
+              retail: parseFloat(row.retail) || 0,
             },
             supplier: {
-              name: row.supplierName || '',
-              contactInfo: row.supplierContact || ''
+              name: row.supplierName || "",
+              contactInfo: row.supplierContact || "",
             },
             companyId: upload.companyId,
-            status: 'Valid'
+            status: "Valid",
           });
 
           // Try to resolve location IDs
           if (row.warehouseName) {
             const warehouse = await Warehouse.findOne({
               name: row.warehouseName,
-              companyId: upload.companyId
+              companyId: upload.companyId,
             });
 
             if (warehouse) {
@@ -738,7 +873,7 @@ async function processCSV(uploadId) {
               if (row.zoneName) {
                 const zone = await Zone.findOne({
                   name: row.zoneName,
-                  warehouseId: warehouse._id
+                  warehouseId: warehouse._id,
                 });
 
                 if (zone) {
@@ -747,7 +882,7 @@ async function processCSV(uploadId) {
                   if (row.shelfName) {
                     const shelf = await Shelf.findOne({
                       name: row.shelfName,
-                      zoneId: zone._id
+                      zoneId: zone._id,
                     });
 
                     if (shelf) {
@@ -756,7 +891,7 @@ async function processCSV(uploadId) {
                       if (row.binName) {
                         const bin = await Bin.findOne({
                           name: row.binName,
-                          shelfId: shelf._id
+                          shelfId: shelf._id,
                         });
 
                         if (bin) {
@@ -777,28 +912,29 @@ async function processCSV(uploadId) {
           await InventoryTemp.create({
             uploadId,
             rowNumber,
-            name: row.name || '',
-            sku: row.sku || '',
+            name: row.name || "",
+            sku: row.sku || "",
             companyId: upload.companyId,
-            status: 'Invalid',
-            errors: [{
-              field: 'general',
-              message: error.message
-            }]
+            status: "Invalid",
+            errors: [
+              {
+                field: "general",
+                message: error.message,
+              },
+            ],
           });
 
           errorItems++;
         }
       })
-      .on('end', async () => {
+      .on("end", async () => {
         // Update upload record with results
         upload.totalItems = rowNumber;
         upload.processedItems = validItems;
         upload.errorItems = errorItems;
         await upload.save();
       });
-
   } catch (error) {
-    console.error('CSV processing error:', error);
+    console.error("CSV processing error:", error);
   }
 }

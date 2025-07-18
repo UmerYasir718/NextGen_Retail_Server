@@ -51,7 +51,7 @@ router.get("/shipments", protect, companyScope, (req, res) => {
 router.get(
   "/activity",
   protect,
-  authorize("Admin", "SuperAdmin"),
+  authorize("Admin", "super_admin"),
   companyScope,
   (req, res) => {
     res.status(200).json({

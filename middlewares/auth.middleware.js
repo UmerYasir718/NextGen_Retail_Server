@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
+const jwt = require("jsonwebtoken");
+const User = require("../models/user.model");
 
 // Protect routes
 exports.protect = async (req, res, next) => {
@@ -8,17 +8,17 @@ exports.protect = async (req, res, next) => {
   // Check if token exists in headers
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith("Bearer")
   ) {
     // Set token from Bearer token in header
-    token = req.headers.authorization.split(' ')[1];
+    token = req.headers.authorization.split(" ")[1];
   }
 
   // Check if token exists
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: 'Not authorized to access this route'
+      message: "Not authorized to access this route",
     });
   }
 
@@ -32,7 +32,7 @@ exports.protect = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found with this ID'
+        message: "User not found with this ID",
       });
     }
 
@@ -46,7 +46,7 @@ exports.protect = async (req, res, next) => {
   } catch (err) {
     return res.status(401).json({
       success: false,
-      message: 'Not authorized to access this route'
+      message: "Not authorized to access this route",
     });
   }
 };
@@ -57,7 +57,7 @@ exports.authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `User role ${req.user.role} is not authorized to access this route`
+        message: `User role ${req.user.role} is not authorized to access this route`,
       });
     }
     next();
@@ -67,23 +67,29 @@ exports.authorize = (...roles) => {
 // Company scope middleware
 exports.companyScope = async (req, res, next) => {
   // SuperAdmin can access all companies
-  if (req.user.role === 'SuperAdmin') {
+  if (req.user.role === "super_admin") {
     return next();
   }
 
   // For other roles, ensure they only access their company's data
-  if (req.params.companyId && req.params.companyId !== req.user.companyId.toString()) {
+  if (
+    req.params.companyId &&
+    req.params.companyId !== req.user.companyId.toString()
+  ) {
     return res.status(403).json({
       success: false,
-      message: 'Not authorized to access other company data'
+      message: "Not authorized to access other company data",
     });
   }
 
   // If companyId is in the body, ensure it matches user's company
-  if (req.body.companyId && req.body.companyId !== req.user.companyId.toString()) {
+  if (
+    req.body.companyId &&
+    req.body.companyId !== req.user.companyId.toString()
+  ) {
     return res.status(403).json({
       success: false,
-      message: 'Not authorized to set data for other companies'
+      message: "Not authorized to set data for other companies",
     });
   }
 

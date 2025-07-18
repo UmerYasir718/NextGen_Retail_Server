@@ -1,7 +1,8 @@
-const Plan = require('../models/plan.model');
-const Company = require('../models/company.model');
-const ErrorResponse = require('../utils/errorResponse');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Plan = require("../models/plan.model");
+const Company = require("../models/company.model");
+const User = require("../models/user.model");
+const ErrorResponse = require("../utils/errorResponse");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // @desc    Get all plans
 // @route   GET /api/plans
@@ -13,7 +14,7 @@ exports.getPlans = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: plans.length,
-      data: plans
+      data: plans,
     });
   } catch (err) {
     next(err);
@@ -35,7 +36,7 @@ exports.getPlan = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: plan
+      data: plan,
     });
   } catch (err) {
     next(err);
@@ -49,19 +50,20 @@ exports.createPlan = async (req, res, next) => {
   try {
     // Create plan in database
     const plan = await Plan.create(req.body);
-
+    const stripeProduct = await stripe.products.create({
+      name: req.body.name,
+      description: req.body.description,
+    });
     // Create plan in Stripe
     const stripePrice = await stripe.prices.create({
       unit_amount: req.body.price * 100, // Stripe uses cents
-      currency: 'usd',
+      currency: "usd",
       recurring: {
-        interval: req.body.duration === 1 ? 'month' : req.body.duration === 6 ? 'month' : 'year',
-        interval_count: req.body.duration === 6 ? 6 : 1
+        interval:
+          req.body.duration === 1 || req.body.duration === 6 ? "month" : "year",
+        interval_count: req.body.duration === 6 ? 6 : 1,
       },
-      product_data: {
-        name: req.body.name,
-        description: req.body.description
-      },
+      product: stripeProduct.id, // <-- Use product ID here
     });
 
     // Update plan with Stripe price ID
@@ -70,7 +72,7 @@ exports.createPlan = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      data: plan
+      data: plan,
     });
   } catch (err) {
     next(err);
@@ -84,7 +86,7 @@ exports.updatePlan = async (req, res, next) => {
   try {
     const plan = await Plan.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (!plan) {
@@ -95,7 +97,7 @@ exports.updatePlan = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: plan
+      data: plan,
     });
   } catch (err) {
     next(err);
@@ -116,11 +118,16 @@ exports.deletePlan = async (req, res, next) => {
     }
 
     // Check if any companies are using this plan
-    const companiesUsingPlan = await Company.countDocuments({ planId: req.params.id });
-    
+    const companiesUsingPlan = await Company.countDocuments({
+      planId: req.params.id,
+    });
+
     if (companiesUsingPlan > 0) {
       return next(
-        new ErrorResponse(`Cannot delete plan as it is being used by ${companiesUsingPlan} companies`, 400)
+        new ErrorResponse(
+          `Cannot delete plan as it is being used by ${companiesUsingPlan} companies`,
+          400
+        )
       );
     }
 
@@ -130,7 +137,7 @@ exports.deletePlan = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
   } catch (err) {
     next(err);
@@ -153,14 +160,17 @@ exports.assignPlanToCompany = async (req, res, next) => {
 
     if (!company) {
       return next(
-        new ErrorResponse(`Company not found with id of ${req.params.companyId}`, 404)
+        new ErrorResponse(
+          `Company not found with id of ${req.params.companyId}`,
+          404
+        )
       );
     }
 
     // Calculate plan end date based on duration
     const startDate = new Date();
     const endDate = new Date();
-    
+
     if (plan.duration === 1) {
       endDate.setMonth(endDate.getMonth() + 1);
     } else if (plan.duration === 6) {
@@ -179,7 +189,7 @@ exports.assignPlanToCompany = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: company
+      data: company,
     });
   } catch (err) {
     next(err);
@@ -201,9 +211,7 @@ exports.createCheckoutSession = async (req, res, next) => {
     }
 
     if (!company) {
-      return next(
-        new ErrorResponse(`Company not found`, 404)
-      );
+      return next(new ErrorResponse(`Company not found`, 404));
     }
 
     // Create or retrieve Stripe customer
@@ -215,10 +223,10 @@ exports.createCheckoutSession = async (req, res, next) => {
         email: req.user.email,
         name: company.name,
         metadata: {
-          companyId: company._id.toString()
-        }
+          companyId: company._id.toString(),
+        },
       });
-      
+
       // Save Stripe customer ID to company
       company.stripeCustomerId = customer.id;
       await company.save();
@@ -227,26 +235,26 @@ exports.createCheckoutSession = async (req, res, next) => {
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
-      payment_method_types: ['card'],
+      payment_method_types: ["card"],
       line_items: [
         {
           price: plan.stripePriceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      success_url: `${req.protocol}://${req.get('host')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.protocol}://${req.get('host')}/payment-cancel`,
+      mode: "subscription",
+      success_url: `${req.body.successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.body.cancelUrl}`,
       metadata: {
         companyId: company._id.toString(),
-        planId: plan._id.toString()
-      }
+        planId: plan._id.toString(),
+      },
     });
 
     res.status(200).json({
       success: true,
       sessionId: session.id,
-      url: session.url
+      url: session.url,
     });
   } catch (err) {
     next(err);
@@ -257,7 +265,7 @@ exports.createCheckoutSession = async (req, res, next) => {
 // @route   POST /api/plans/webhook
 // @access  Public
 exports.stripeWebhook = async (req, res, next) => {
-  const signature = req.headers['stripe-signature'];
+  const signature = req.headers["stripe-signature"];
   let event;
 
   try {
@@ -272,19 +280,23 @@ exports.stripeWebhook = async (req, res, next) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
+    case "checkout.session.completed":
       const session = event.data.object;
-      
+
       // Update company with plan details
-      if (session.metadata && session.metadata.companyId && session.metadata.planId) {
+      if (
+        session.metadata &&
+        session.metadata.companyId &&
+        session.metadata.planId
+      ) {
         const company = await Company.findById(session.metadata.companyId);
         const plan = await Plan.findById(session.metadata.planId);
-        
+
         if (company && plan) {
           // Calculate plan end date based on duration
           const startDate = new Date();
           const endDate = new Date();
-          
+
           if (plan.duration === 1) {
             endDate.setMonth(endDate.getMonth() + 1);
           } else if (plan.duration === 6) {
@@ -300,25 +312,35 @@ exports.stripeWebhook = async (req, res, next) => {
           company.isTrialPeriod = false;
 
           await company.save();
+
+          // Update planId for all users in the company
+          await User.updateMany(
+            { companyId: company._id },
+            { planId: plan._id }
+          );
+
+          console.log(
+            `Updated plan for company ${company.name} and all its users`
+          );
         }
       }
       break;
-    
-    case 'invoice.payment_failed':
+
+    case "invoice.payment_failed":
       // Handle failed payment
       const invoice = event.data.object;
       const customerId = invoice.customer;
-      
+
       // Find company by Stripe customer ID
       const company = await Company.findOne({ stripeCustomerId: customerId });
-      
+
       if (company) {
         // Send notification about failed payment
         // This would be implemented in a notification service
         console.log(`Payment failed for company ${company.name}`);
       }
       break;
-    
+
     default:
       console.log(`Unhandled event type ${event.type}`);
   }

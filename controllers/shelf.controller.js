@@ -49,10 +49,46 @@ exports.getShelves = async (req, res, next) => {
     // Execute query
     const shelves = await Shelf.find(query).sort({ name: 1 });
 
+    // Get inventory counts and utilization for each shelf
+    const shelvesWithUtilization = await Promise.all(
+      shelves.map(async (shelf) => {
+        // Get total inventory items in this shelf
+        const inventoryCount = await Inventory.countDocuments({
+          "location.shelfId": shelf._id,
+        });
+
+        // Get total bins in this shelf
+        const binCount = await Bin.countDocuments({
+          shelfId: shelf._id,
+        });
+
+        // Calculate utilization percentage
+        let capacityValue = shelf.capacity || 0;
+        let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+        
+        // Format to 2 decimal places and ensure it doesn't exceed 100%
+        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+        // Convert the Mongoose document to a plain JavaScript object
+        const shelfObj = shelf.toObject();
+        
+        // Add utilization data
+        return {
+          ...shelfObj,
+          utilization: {
+            inventoryCount,
+            binCount,
+            capacityValue,
+            utilizationPercentage,
+          },
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: shelves.length,
-      data: shelves
+      count: shelvesWithUtilization.length,
+      data: shelvesWithUtilization
     });
   } catch (err) {
     next(err);
@@ -83,9 +119,40 @@ exports.getShelf = async (req, res, next) => {
       );
     }
 
+    // Get inventory counts and utilization
+    const inventoryCount = await Inventory.countDocuments({
+      "location.shelfId": shelf._id,
+    });
+
+    // Get total bins in this shelf
+    const binCount = await Bin.countDocuments({
+      shelfId: shelf._id,
+    });
+
+    // Calculate utilization percentage
+    let capacityValue = shelf.capacity || 0;
+    let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+    
+    // Format to 2 decimal places and ensure it doesn't exceed 100%
+    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+    // Convert the Mongoose document to a plain JavaScript object
+    const shelfObj = shelf.toObject();
+    
+    // Add utilization data
+    const shelfWithUtilization = {
+      ...shelfObj,
+      utilization: {
+        inventoryCount,
+        binCount,
+        capacityValue,
+        utilizationPercentage,
+      },
+    };
+
     res.status(200).json({
       success: true,
-      data: shelf
+      data: shelfWithUtilization
     });
   } catch (err) {
     next(err);
@@ -297,6 +364,44 @@ exports.getShelfUtilization = async (req, res, next) => {
         binCount: bins.length,
         binUtilization
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get simplified shelf list (id and name only)
+// @route   GET /api/shelves/simple
+// @access  Private
+exports.getSimpleShelves = async (req, res, next) => {
+  try {
+    // Build query
+    let query = { companyId: req.user.companyId };
+
+    // Filter by zone if provided
+    if (req.query.zoneId) {
+      query.zoneId = req.query.zoneId;
+    }
+
+    // Filter by warehouse if provided
+    if (req.query.warehouseId) {
+      query.warehouseId = req.query.warehouseId;
+    }
+
+    // Filter by active status if provided
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === 'true';
+    }
+
+    // Execute query and select only id, name, and zoneId
+    const shelves = await Shelf.find(query)
+      .select('_id name zoneId warehouseId')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: shelves.length,
+      data: shelves,
     });
   } catch (err) {
     next(err);

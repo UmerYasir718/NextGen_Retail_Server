@@ -1,5 +1,6 @@
 const AuditLog = require('../models/auditLog.model');
 const ErrorResponse = require('../utils/errorResponse');
+const User = require('../models/user.model');
 
 // @desc    Get all audit logs
 // @route   GET /api/audit-logs
@@ -276,6 +277,92 @@ exports.cleanupAuditLogs = async (req, res, next) => {
       data: {
         deletedCount: result.deletedCount
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get inventory location audit logs
+// @route   GET /api/audit-logs/inventory-location
+// @access  Private/Admin
+exports.getInventoryLocationAuditLogs = async (req, res, next) => {
+  try {
+    // Build query
+    let query = { 
+      companyId: req.user.companyId,
+      module: 'Inventory',
+      'details.previousLocation': { $exists: true },
+      'details.currentLocation': { $exists: true }
+    };
+
+    // Filter by inventory ID if provided
+    if (req.query.inventoryId) {
+      query['details.inventoryId'] = req.query.inventoryId;
+    }
+
+    // Filter by user if provided
+    if (req.query.userId) {
+      query.userId = req.query.userId;
+    }
+
+    // Filter by warehouse if provided
+    if (req.query.warehouseId) {
+      query.$or = [
+        { 'details.previousLocation.warehouseId': req.query.warehouseId },
+        { 'details.currentLocation.warehouseId': req.query.warehouseId }
+      ];
+    }
+
+    // Filter by date range
+    if (req.query.startDate && req.query.endDate) {
+      query.timestamp = {
+        $gte: new Date(req.query.startDate),
+        $lte: new Date(req.query.endDate)
+      };
+    } else if (req.query.startDate) {
+      query.timestamp = { $gte: new Date(req.query.startDate) };
+    } else if (req.query.endDate) {
+      query.timestamp = { $lte: new Date(req.query.endDate) };
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await AuditLog.countDocuments(query);
+
+    // Execute query
+    const auditLogs = await AuditLog.find(query)
+      .populate('userId', 'name email role')
+      .skip(startIndex)
+      .limit(limit)
+      .sort({ timestamp: -1 });
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: auditLogs.length,
+      pagination,
+      total,
+      data: auditLogs
     });
   } catch (err) {
     next(err);

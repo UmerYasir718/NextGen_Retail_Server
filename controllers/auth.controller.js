@@ -1,8 +1,10 @@
-const crypto = require('crypto');
-const User = require('../models/user.model');
-const Company = require('../models/company.model');
-const ErrorResponse = require('../utils/errorResponse');
-const sendEnhancedEmail = require('../utils/enhancedEmail');
+const crypto = require("crypto");
+const User = require("../models/user.model");
+const Company = require("../models/company.model");
+const Plan = require("../models/plan.model");
+const ErrorResponse = require("../utils/errorResponse");
+const sendEnhancedEmail = require("../utils/enhancedEmail");
+const { createFreePlan } = require("../seeder/planSeeder");
 
 // @desc    Register user (Admin)
 // @route   POST /api/auth/register
@@ -10,29 +12,43 @@ const sendEnhancedEmail = require('../utils/enhancedEmail');
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password, companyName, address } = req.body;
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res.status(409).json({ message: "Email is already registered",error:true });
-  }
-  const existingCompany=await Company.findOne({name:companyName});
-  if(existingCompany){
-    return res.status(409).json({ message: "Company is not Available!",error:true });
-  }
-    // Create company first
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "Email is already registered", error: true });
+    }
+    const existingCompany = await Company.findOne({ name: companyName });
+    if (existingCompany) {
+      return res
+        .status(409)
+        .json({ message: "Company is not Available!", error: true });
+    }
+
+    // Get or create free trial plan
+    const freePlan = await createFreePlan();
+
+    // Create company first with free trial plan
     const company = await Company.create({
       name: companyName,
       address,
       contactEmail: email,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      planId: freePlan._id,
+      isTrialPeriod: true,
+      planStartDate: Date.now(),
+      trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
     });
 
-    // Create user with Admin role
+    // Create user with Admin role and assign the free plan
     const user = await User.create({
       name,
       email,
       password,
-      role: 'company_admin',
-      companyId: company._id
+      role: "company_admin",
+      companyId: company._id,
+      planId: freePlan._id,
+      isActive: true,
     });
 
     // Generate verification token
@@ -41,21 +57,21 @@ exports.register = async (req, res, next) => {
 
     // Create verification URL
     const verificationUrl = `${req.protocol}://${req.get(
-      'host'
+      "host"
     )}/api/auth/verify-email/${verificationToken}`;
 
     try {
       await sendEnhancedEmail({
         email: user.email,
-        subject: 'Email Verification',
-        templateName: 'verification',
+        subject: "Email Verification",
+        templateName: "verification",
         templateData: {
           name: user.name,
-          verificationUrl
+          verificationUrl,
         },
         plainText: `You are receiving this email because you need to confirm your email address. Please click the link below to verify your email address: 
 
- ${verificationUrl}`
+ ${verificationUrl}`,
       });
 
       // Update company with created user
@@ -64,7 +80,7 @@ exports.register = async (req, res, next) => {
 
       res.status(200).json({
         success: true,
-        message: 'Email sent for verification'
+        message: "Email sent for verification",
       });
     } catch (err) {
       console.log(err);
@@ -72,7 +88,7 @@ exports.register = async (req, res, next) => {
       user.verificationExpire = undefined;
       await user.save({ validateBeforeSave: false });
 
-      return next(new ErrorResponse('Email could not be sent', 500));
+      return next(new ErrorResponse("Email could not be sent", 500));
     }
   } catch (err) {
     next(err);
@@ -88,29 +104,63 @@ exports.login = async (req, res, next) => {
 
     // Validate email & password
     if (!email || !password) {
-      return next(new ErrorResponse('Please provide an email and password', 400));
+      return next(
+        new ErrorResponse("Please provide an email and password", 400)
+      );
     }
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials', 401));
+      return next(new ErrorResponse("Invalid credentials", 401));
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return next(new ErrorResponse('Invalid credentials', 401));
+      return next(new ErrorResponse("Invalid credentials", 401));
     }
 
     // Check if user is verified (except for SuperAdmin)
-    if (user.role !== 'super_admin' && !user.isVerified) {
-      return next(new ErrorResponse('Please verify your email first', 401));
+    if (user.role !== "super_admin" && !user.isVerified) {
+      return next(new ErrorResponse("Please verify your email first", 401));
     }
 
-    sendTokenResponse(user, 200, res);
+    // For non-super_admin users, check company plan status
+    let isPlanExpired = false;
+    let company = null;
+
+    if (user.role !== "super_admin" && user.companyId) {
+      company = await Company.findById(user.companyId);
+
+      if (company) {
+        // Check if trial period or plan has expired
+        if (company.isTrialPeriod && company.trialEndDate < Date.now()) {
+          isPlanExpired = true;
+        } else if (
+          !company.isTrialPeriod &&
+          company.planEndDate &&
+          company.planEndDate < Date.now()
+        ) {
+          isPlanExpired = true;
+        }
+
+        // If plan expired and user is not company_admin, deny access
+        if (isPlanExpired && user.role !== "company_admin") {
+          return next(
+            new ErrorResponse(
+              "Your company plan has expired. Please contact your administrator.",
+              403
+            )
+          );
+        }
+      }
+    }
+
+    // Send token response with plan expiration flag
+    sendTokenResponse(user, 200, res, isPlanExpired);
   } catch (err) {
     next(err);
   }
@@ -123,17 +173,17 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     // Get hashed token
     const verificationToken = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(req.params.token)
-      .digest('hex');
+      .digest("hex");
 
     const user = await User.findOne({
       verificationToken,
-      verificationExpire: { $gt: Date.now() }
+      verificationExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return next(new ErrorResponse('Invalid token', 400));
+      return next(new ErrorResponse("Invalid token", 400));
     }
 
     // Set user as verified
@@ -144,7 +194,7 @@ exports.verifyEmail = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Email verified successfully'
+      message: "Email verified successfully",
     });
   } catch (err) {
     next(err);
@@ -160,7 +210,7 @@ exports.getMe = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: user
+      data: user,
     });
   } catch (err) {
     next(err);
@@ -175,7 +225,7 @@ exports.forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-      return next(new ErrorResponse('There is no user with that email', 404));
+      return next(new ErrorResponse("There is no user with that email", 404));
     }
 
     // Get reset token
@@ -185,26 +235,26 @@ exports.forgotPassword = async (req, res, next) => {
 
     // Create reset url
     const resetUrl = `${req.protocol}://${req.get(
-      'host'
+      "host"
     )}/api/auth/reset-password/${resetToken}`;
 
     try {
       await sendEnhancedEmail({
         email: user.email,
-        subject: 'Password Reset',
-        templateName: 'passwordReset',
+        subject: "Password Reset",
+        templateName: "passwordReset",
         templateData: {
           name: user.name,
-          resetUrl
+          resetUrl,
         },
         plainText: `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the following link to reset your password: 
 
  ${resetUrl} 
 
- If you did not request this, please ignore this email and your password will remain unchanged.`
+ If you did not request this, please ignore this email and your password will remain unchanged.`,
       });
 
-      res.status(200).json({ success: true, message: 'Email sent' });
+      res.status(200).json({ success: true, message: "Email sent" });
     } catch (err) {
       console.log(err);
       user.resetPasswordToken = undefined;
@@ -212,7 +262,7 @@ exports.forgotPassword = async (req, res, next) => {
 
       await user.save({ validateBeforeSave: false });
 
-      return next(new ErrorResponse('Email could not be sent', 500));
+      return next(new ErrorResponse("Email could not be sent", 500));
     }
   } catch (err) {
     next(err);
@@ -226,17 +276,17 @@ exports.resetPassword = async (req, res, next) => {
   try {
     // Get hashed token
     const resetPasswordToken = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(req.params.token)
-      .digest('hex');
+      .digest("hex");
 
     const user = await User.findOne({
       resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
+      resetPasswordExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return next(new ErrorResponse('Invalid token', 400));
+      return next(new ErrorResponse("Invalid token", 400));
     }
 
     // Set new password
@@ -256,11 +306,11 @@ exports.resetPassword = async (req, res, next) => {
 // @access  Private
 exports.updatePassword = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select('+password');
+    const user = await User.findById(req.user.id).select("+password");
 
     // Check current password
     if (!(await user.matchPassword(req.body.currentPassword))) {
-      return next(new ErrorResponse('Password is incorrect', 401));
+      return next(new ErrorResponse("Password is incorrect", 401));
     }
 
     user.password = req.body.newPassword;
@@ -278,8 +328,8 @@ exports.updatePassword = async (req, res, next) => {
 exports.logout = async (req, res, next) => {
   res.status(200).json({
     success: true,
-    message: 'User logged out successfully',
-    data: {}
+    message: "User logged out successfully",
+    data: {},
   });
 };
 
@@ -292,28 +342,30 @@ exports.superAdminLogin = async (req, res, next) => {
 
     // Validate email & password
     if (!email || !password) {
-      return next(new ErrorResponse('Please provide an email and password', 400));
+      return next(
+        new ErrorResponse("Please provide an email and password", 400)
+      );
     }
 
     // Check if credentials match the environment variables
-    console.log(process.env.SUPER_ADMIN_EMAIL)
+    console.log(process.env.SUPER_ADMIN_EMAIL);
     if (
       email !== process.env.SUPER_ADMIN_EMAIL ||
       password !== process.env.SUPER_ADMIN_PASSWORD
     ) {
-      return next(new ErrorResponse('Invalid credentials', 401));
+      return next(new ErrorResponse("Invalid credentials", 401));
     }
 
     // Find or create SuperAdmin user
-    let superAdmin = await User.findOne({ role: 'super_admin' });
+    let superAdmin = await User.findOne({ role: "super_admin" });
 
     if (!superAdmin) {
       superAdmin = await User.create({
-        name: 'Super Admin',
+        name: "Super Admin",
         email: process.env.SUPER_ADMIN_EMAIL,
         password: process.env.SUPER_ADMIN_PASSWORD,
-        role: 'super_admin',
-        isVerified: true
+        role: "super_admin",
+        isVerified: true,
       });
     }
 
@@ -329,15 +381,15 @@ exports.superAdminLogin = async (req, res, next) => {
 exports.selectCompany = async (req, res, next) => {
   try {
     // Check if user is SuperAdmin
-    if (req.user.role !== 'super_admin') {
-      return next(new ErrorResponse('Not authorized', 403));
+    if (req.user.role !== "super_admin") {
+      return next(new ErrorResponse("Not authorized", 403));
     }
 
     // Check if company exists
     const company = await Company.findById(req.params.companyId);
 
     if (!company) {
-      return next(new ErrorResponse('Company not found', 404));
+      return next(new ErrorResponse("Company not found", 404));
     }
 
     // Generate token with selected company
@@ -345,19 +397,19 @@ exports.selectCompany = async (req, res, next) => {
       {
         id: req.user.id,
         companyId: company._id,
-        role: 'super_admin',
+        role: "super_admin",
         email: req.user.email,
-        name: req.user.name
+        name: req.user.name,
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: process.env.JWT_EXPIRE
+        expiresIn: process.env.JWT_EXPIRE,
       }
     );
 
     res.status(200).json({
       success: true,
-      token
+      token,
     });
   } catch (err) {
     next(err);
@@ -365,19 +417,21 @@ exports.selectCompany = async (req, res, next) => {
 };
 
 // Helper function to get token from model, create cookie and send response
-const sendTokenResponse = (user, statusCode, res) => {
+const sendTokenResponse = (user, statusCode, res, isPlanExpired = false) => {
   // Create token
   const token = user.getSignedJwtToken();
 
   res.status(statusCode).json({
     success: true,
     token,
+    isPlanExpired,
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      companyId: user.companyId
-    }
+      companyId: user.companyId,
+      planId: user.planId,
+    },
   });
 };

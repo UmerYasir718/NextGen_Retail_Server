@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const {
   getUserNotifications,
   getAllNotifications,
@@ -7,37 +7,41 @@ const {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-  getUnreadCount
-} = require('../controllers/notification.controller');
+  getUnreadCount,
+} = require("../controllers/notification.controller");
 
 const router = express.Router();
 
 // Import middleware
-const { protect, authorize, companyScope } = require('../middlewares/auth.middleware');
+const {
+  protect,
+  authorize,
+  companyScope,
+} = require("../middlewares/auth.middleware");
 
 // Apply protection to all routes
 router.use(protect);
 router.use(companyScope);
 
 // Notification routes
-router.route('/')
+router
+  .route("/")
   .get(getUserNotifications)
-  .post(authorize('Admin', 'SuperAdmin'), createNotification);
+  .post(authorize("company_admin", "super_admin"), createNotification);
 
-router.route('/all')
-  .get(authorize('Admin', 'SuperAdmin'), getAllNotifications);
+router
+  .route("/all")
+  .get(authorize("company_admin", "super_admin"), getAllNotifications);
 
-router.route('/read-all')
-  .put(markAllAsRead);
+router.route("/read-all").put(markAllAsRead);
 
-router.route('/unread-count')
-  .get(getUnreadCount);
+router.route("/unread-count").get(getUnreadCount);
 
-router.route('/:id')
+router
+  .route("/:id")
   .get(getNotification)
-  .delete(authorize('Admin', 'SuperAdmin'), deleteNotification);
+  .delete(authorize("company_admin", "super_admin"), deleteNotification);
 
-router.route('/:id/read')
-  .put(markAsRead);
+router.route("/:id/read").put(markAsRead);
 
 module.exports = router;

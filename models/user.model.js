@@ -30,8 +30,8 @@ const UserSchema = new mongoose.Schema({
     enum: [
       "super_admin",
       "company_admin",
-      "auditor",
       "store_manager",
+      "auditor",
       "analyst",
     ],
     default: "analyst",
@@ -42,6 +42,10 @@ const UserSchema = new mongoose.Schema({
     required: function () {
       return this.role !== "super_admin";
     },
+  },
+  planId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Plan",
   },
   isVerified: {
     type: Boolean,
@@ -57,8 +61,7 @@ const UserSchema = new mongoose.Schema({
   },
   isActive: {
     type: Boolean,
-    enum: ["active", "inactive"],
-    default: "active",
+    default: true,
   },
 });
 

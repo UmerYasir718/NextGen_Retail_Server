@@ -1,14 +1,15 @@
 const express = require("express");
 const {
-  getBins,
-  getBin,
-  createBin,
-  updateBin,
-  deleteBin,
-  getBinInventory,
-  updateBinCapacity,
-  getSimpleBins,
-} = require("../controllers/bin.controller");
+  getZones,
+  getZone,
+  createZone,
+  updateZone,
+  deleteZone,
+  getSimpleZones,
+} = require("../controllers/zone.controller");
+
+// Include shelf routes for nested routing
+const shelfRouter = require("./shelf.routes");
 
 const router = express.Router({ mergeParams: true });
 
@@ -19,11 +20,14 @@ const {
   companyScope,
 } = require("../middlewares/auth.middleware");
 
+// Re-route into shelf router
+router.use("/:zoneId/shelves", shelfRouter);
+
 // Apply protection to all routes
 router.use(protect);
 router.use(companyScope);
 
-// Bin routes
+// Zone routes
 router
   .route("/")
   .get(
@@ -34,9 +38,9 @@ router
       "analyst",
       "auditor"
     ),
-    getBins
+    getZones
   )
-  .post(authorize("company_admin", "super_admin", "store_manager"), createBin);
+  .post(authorize("company_admin", "super_admin", "store_manager"), createZone);
 
 router
   .route("/simple")
@@ -48,7 +52,7 @@ router
       "analyst",
       "auditor"
     ),
-    getSimpleBins
+    getSimpleZones
   );
 
 router
@@ -61,29 +65,9 @@ router
       "analyst",
       "auditor"
     ),
-    getBin
+    getZone
   )
-  .put(authorize("company_admin", "super_admin", "store_manager"), updateBin)
-  .delete(authorize("company_admin", "super_admin"), deleteBin);
-
-router
-  .route("/:id/inventory")
-  .get(
-    authorize(
-      "company_admin",
-      "super_admin",
-      "store_manager",
-      "analyst",
-      "auditor"
-    ),
-    getBinInventory
-  );
-
-router
-  .route("/:id/capacity")
-  .put(
-    authorize("company_admin", "super_admin", "store_manager"),
-    updateBinCapacity
-  );
+  .put(authorize("company_admin", "super_admin", "store_manager"), updateZone)
+  .delete(authorize("company_admin", "super_admin"), deleteZone);
 
 module.exports = router;

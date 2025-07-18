@@ -29,12 +29,8 @@ app.use(helmet());
 app.use(morgan('dev'));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/windsurf', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+const connectDB = require('./config/db');
+connectDB();
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -42,6 +38,7 @@ const userRoutes = require('./routes/user.routes');
 const companyRoutes = require('./routes/company.routes');
 const planRoutes = require('./routes/plan.routes');
 const warehouseRoutes = require('./routes/warehouse.routes');
+const zoneRoutes = require('./routes/zone.routes');
 const shelfRoutes = require('./routes/shelf.routes');
 const binRoutes = require('./routes/bin.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
@@ -50,6 +47,7 @@ const auditLogRoutes = require('./routes/auditLog.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const reportRoutes = require('./routes/report.routes');
 const forecastRoutes = require('./routes/forecast.routes');
+const fileRoutes = require('./routes/file.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -57,7 +55,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/warehouses', warehouseRoutes);
+app.use('/api/zones', zoneRoutes);
 app.use('/api/shelves', shelfRoutes);
+app.use('/api/files', fileRoutes);
 app.use('/api/bins', binRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/shipments', shipmentRoutes);

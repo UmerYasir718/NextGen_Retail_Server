@@ -20,7 +20,7 @@ router.get("/", protect, companyScope, (req, res) => {
 router.post(
   "/inventory-demand",
   protect,
-  authorize("Admin", "Manager"),
+  authorize("company_admin", "store_manager"),
   companyScope,
   (req, res) => {
     res.status(200).json({
@@ -52,7 +52,7 @@ router.get("/reorder-recommendations", protect, companyScope, (req, res) => {
 router.get(
   "/warehouse-optimization",
   protect,
-  authorize("Admin", "Manager"),
+  authorize("company_admin", "store_manager"),
   companyScope,
   (req, res) => {
     res.status(200).json({
@@ -69,7 +69,7 @@ router.get(
 router.get(
   "/seasonal-trends",
   protect,
-  authorize("Admin", "Manager"),
+  authorize("company_admin", "store_manager"),
   companyScope,
   (req, res) => {
     res.status(200).json({

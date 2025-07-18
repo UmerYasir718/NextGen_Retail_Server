@@ -12,6 +12,7 @@ const {
   createZone,
   updateZone,
   deleteZone,
+  getSimpleWarehouses,
 } = require("../controllers/warehouse.controller");
 
 const router = express.Router();
@@ -35,8 +36,8 @@ router
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getWarehouses
   )
@@ -46,14 +47,27 @@ router
   );
 
 router
+  .route("/simple")
+  .get(
+    authorize(
+      "company_admin",
+      "super_admin",
+      "compan_manager",
+      "analyst",
+      "auditor"
+    ),
+    getSimpleWarehouses
+  );
+
+router
   .route("/:id")
   .get(
     authorize(
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getWarehouse
   )
@@ -70,8 +84,8 @@ router
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getWarehouseStructure
   );
@@ -83,8 +97,8 @@ router
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getWarehouseStats
   );
@@ -97,8 +111,8 @@ router
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getZones
   )
@@ -114,8 +128,8 @@ router
       "company_admin",
       "super_admin",
       "compan_manager",
-      "Staff",
-      "Auditor"
+      "analyst",
+      "auditor"
     ),
     getZone
   )

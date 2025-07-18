@@ -27,10 +27,47 @@ exports.getWarehouses = async (req, res, next) => {
     // Execute query
     const warehouses = await Warehouse.find(query).sort({ createdAt: -1 });
 
+    // Get inventory counts and utilization for each warehouse
+    const warehousesWithUtilization = await Promise.all(
+      warehouses.map(async (warehouse) => {
+        // Get total inventory items in this warehouse
+        const inventoryCount = await Inventory.countDocuments({
+          "location.warehouseId": warehouse._id,
+        });
+
+        // Get total bins in this warehouse
+        const binCount = await Bin.countDocuments({
+          warehouseId: warehouse._id,
+        });
+
+        // Calculate utilization percentage
+        // If capacity is not a number, default to 0% utilization
+        let capacityValue = parseInt(warehouse.capacity) || 0;
+        let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+        
+        // Format to 2 decimal places and ensure it doesn't exceed 100%
+        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+        // Convert the Mongoose document to a plain JavaScript object
+        const warehouseObj = warehouse.toObject();
+        
+        // Add utilization data
+        return {
+          ...warehouseObj,
+          utilization: {
+            inventoryCount,
+            binCount,
+            capacityValue,
+            utilizationPercentage,
+          },
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: warehouses.length,
-      data: warehouses,
+      count: warehousesWithUtilization.length,
+      data: warehousesWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -56,9 +93,41 @@ exports.getWarehouse = async (req, res, next) => {
       );
     }
 
+    // Get inventory counts and utilization
+    const inventoryCount = await Inventory.countDocuments({
+      "location.warehouseId": warehouse._id,
+    });
+
+    // Get total bins in this warehouse
+    const binCount = await Bin.countDocuments({
+      warehouseId: warehouse._id,
+    });
+
+    // Calculate utilization percentage
+    // If capacity is not a number, default to 0% utilization
+    let capacityValue = parseInt(warehouse.capacity) || 0;
+    let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+    
+    // Format to 2 decimal places and ensure it doesn't exceed 100%
+    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+    // Convert the Mongoose document to a plain JavaScript object
+    const warehouseObj = warehouse.toObject();
+    
+    // Add utilization data
+    const warehouseWithUtilization = {
+      ...warehouseObj,
+      utilization: {
+        inventoryCount,
+        binCount,
+        capacityValue,
+        utilizationPercentage,
+      },
+    };
+
     res.status(200).json({
       success: true,
-      data: warehouse,
+      data: warehouseWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -551,6 +620,34 @@ exports.deleteZone = async (req, res, next) => {
       success: true,
       data: {},
       message: "Zone deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get simplified warehouse list (id and name only)
+// @route   GET /api/warehouses/simple
+// @access  Private
+exports.getSimpleWarehouses = async (req, res, next) => {
+  try {
+    // Build query
+    let query = { companyId: req.user.companyId };
+
+    // Filter by active status if provided
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === "true";
+    }
+
+    // Execute query and select only id and name
+    const warehouses = await Warehouse.find(query)
+      .select('_id name')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: warehouses.length,
+      data: warehouses,
     });
   } catch (err) {
     next(err);

@@ -54,11 +54,48 @@ exports.getBins = async (req, res, next) => {
     // Execute query
     const bins = await Bin.find(query).sort({ name: 1 });
 
-    console.log(bins)
+    // Get inventory counts and utilization for each bin
+    const binsWithUtilization = await Promise.all(
+      bins.map(async (bin) => {
+        // Get total inventory items in this bin
+        const inventoryCount = await Inventory.countDocuments({
+          "location.binId": bin._id,
+        });
+
+        // Calculate total quantity of items in the bin
+        const inventoryItems = await Inventory.find({ "location.binId": bin._id });
+        let totalQuantity = 0;
+        inventoryItems.forEach(item => {
+          totalQuantity += item.quantity || 0;
+        });
+
+        // Calculate utilization percentage
+        let capacityValue = bin.capacity || 0;
+        let utilizationPercentage = capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
+        
+        // Format to 2 decimal places and ensure it doesn't exceed 100%
+        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+        // Convert the Mongoose document to a plain JavaScript object
+        const binObj = bin.toObject();
+        
+        // Add utilization data
+        return {
+          ...binObj,
+          utilization: {
+            inventoryCount,
+            totalQuantity,
+            capacityValue,
+            utilizationPercentage,
+          },
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: bins.length,
-      data: bins,
+      count: binsWithUtilization.length,
+      data: binsWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -89,9 +126,42 @@ exports.getBin = async (req, res, next) => {
       );
     }
 
+    // Get inventory counts and utilization
+    const inventoryCount = await Inventory.countDocuments({
+      "location.binId": bin._id,
+    });
+
+    // Calculate total quantity of items in the bin
+    const inventoryItems = await Inventory.find({ "location.binId": bin._id });
+    let totalQuantity = 0;
+    inventoryItems.forEach(item => {
+      totalQuantity += item.quantity || 0;
+    });
+
+    // Calculate utilization percentage
+    let capacityValue = bin.capacity || 0;
+    let utilizationPercentage = capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
+    
+    // Format to 2 decimal places and ensure it doesn't exceed 100%
+    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+
+    // Convert the Mongoose document to a plain JavaScript object
+    const binObj = bin.toObject();
+    
+    // Add utilization data
+    const binWithUtilization = {
+      ...binObj,
+      utilization: {
+        inventoryCount,
+        totalQuantity,
+        capacityValue,
+        utilizationPercentage,
+      },
+    };
+
     res.status(200).json({
       success: true,
-      data: bin
+      data: binWithUtilization
     });
   } catch (err) {
     next(err);
@@ -312,6 +382,49 @@ exports.updateBinCapacity = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: bin
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get simplified bin list (id and name only)
+// @route   GET /api/bins/simple
+// @access  Private
+exports.getSimpleBins = async (req, res, next) => {
+  try {
+    // Build query
+    let query = { companyId: req.user.companyId };
+
+    // Filter by shelf if provided
+    if (req.query.shelfId) {
+      query.shelfId = req.query.shelfId;
+    }
+
+    // Filter by zone if provided
+    if (req.query.zoneId) {
+      query.zoneId = req.query.zoneId;
+    }
+
+    // Filter by warehouse if provided
+    if (req.query.warehouseId) {
+      query.warehouseId = req.query.warehouseId;
+    }
+
+    // Filter by active status if provided
+    if (req.query.isActive !== undefined) {
+      query.isActive = req.query.isActive === 'true';
+    }
+
+    // Execute query and select only id, name, and parent IDs
+    const bins = await Bin.find(query)
+      .select('_id name shelfId zoneId warehouseId')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: bins.length,
+      data: bins,
     });
   } catch (err) {
     next(err);

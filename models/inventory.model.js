@@ -57,8 +57,12 @@ const InventorySchema = new mongoose.Schema({
   },
   inventoryStatus: {
     type: String,
-    enum: ["purchase", "sale_pending", "sale"],
+    enum: ["purchase", "sale_pending", "sale", "purchased"],
     default: "purchase",
+  },
+  lowStockAlertSent: {
+    type: Boolean,
+    default: false,
   },
   price: {
     cost: {

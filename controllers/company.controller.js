@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const Company = require('../models/company.model');
-const User = require('../models/user.model');
-const Inventory = require('../models/inventory.model');
-const Shipment = require('../models/shipment.model');
-const ErrorResponse = require('../utils/errorResponse');
+const mongoose = require("mongoose");
+const Company = require("../models/company.model");
+const User = require("../models/user.model");
+const Inventory = require("../models/inventory.model");
+const Shipment = require("../models/shipment.model");
+const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Get all companies
 // @route   GET /api/companies
@@ -15,7 +15,7 @@ exports.getCompanies = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: companies.length,
-      data: companies
+      data: companies,
     });
   } catch (err) {
     next(err);
@@ -29,7 +29,7 @@ exports.getCompany = async (req, res, next) => {
   try {
     let company;
 
-    if (req.user.role === 'SuperAdmin') {
+    if (req.user.role === "SuperAdmin") {
       // SuperAdmin can view any company
       company = await Company.findById(req.params.id);
     } else {
@@ -50,7 +50,7 @@ exports.getCompany = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: company
+      data: company,
     });
   } catch (err) {
     next(err);
@@ -64,11 +64,11 @@ exports.updateCompany = async (req, res, next) => {
   try {
     let company;
 
-    if (req.user.role === 'SuperAdmin') {
+    if (req.user.role === "SuperAdmin") {
       // SuperAdmin can update any company
       company = await Company.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
-        runValidators: true
+        runValidators: true,
       });
     } else {
       // Others can only update their own company
@@ -79,8 +79,16 @@ exports.updateCompany = async (req, res, next) => {
       }
 
       // Prevent changing critical fields if not SuperAdmin
-      const restrictedFields = ['planId', 'planStartDate', 'planEndDate', 'isTrialPeriod', 'trialEndDate', 'stripeCustomerId', 'isActive'];
-      restrictedFields.forEach(field => {
+      const restrictedFields = [
+        "planId",
+        "planStartDate",
+        "planEndDate",
+        "isTrialPeriod",
+        "trialEndDate",
+        "stripeCustomerId",
+        "isActive",
+      ];
+      restrictedFields.forEach((field) => {
         if (req.body[field] !== undefined) {
           delete req.body[field];
         }
@@ -88,7 +96,7 @@ exports.updateCompany = async (req, res, next) => {
 
       company = await Company.findByIdAndUpdate(req.user.companyId, req.body, {
         new: true,
-        runValidators: true
+        runValidators: true,
       });
     }
 
@@ -100,7 +108,7 @@ exports.updateCompany = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: company
+      data: company,
     });
   } catch (err) {
     next(err);
@@ -128,7 +136,7 @@ exports.deleteCompany = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
   } catch (err) {
     next(err);
@@ -147,37 +155,39 @@ exports.getDashboardStats = async (req, res, next) => {
     const company = await Company.findById(companyId);
 
     if (!company) {
-      return next(new ErrorResponse('Company not found', 404));
+      return next(new ErrorResponse("Company not found", 404));
     }
 
     // Calculate days remaining in trial or plan
     let daysRemaining = 0;
-    let planStatus = '';
+    let planStatus = "";
 
     if (company.isTrialPeriod) {
       const trialEnd = new Date(company.trialEndDate);
       const today = new Date();
       daysRemaining = Math.ceil((trialEnd - today) / (1000 * 60 * 60 * 24));
-      planStatus = 'Trial';
+      planStatus = "Trial";
     } else if (company.planEndDate) {
       const planEnd = new Date(company.planEndDate);
       const today = new Date();
       daysRemaining = Math.ceil((planEnd - today) / (1000 * 60 * 60 * 24));
-      planStatus = 'Paid Plan';
+      planStatus = "Paid Plan";
     }
 
     // Get user count
     const userCount = await User.countDocuments({ companyId });
-    
+
     // Get inventory data for charts
     const inventoryData = await exports.getInventoryChartData(companyId);
-    
+
     // Get sales and revenue data for charts
-    const { salesData, revenueData } = await exports.getSalesAndRevenueData(companyId);
-    
+    const { salesData, revenueData } = await exports.getSalesAndRevenueData(
+      companyId
+    );
+
     // Get recent sales data for table
     const recentSalesData = await exports.getRecentSalesData(companyId);
-    
+
     // Get low stock items for table
     const lowStockItems = await exports.getLowStockItems(companyId);
 
@@ -194,8 +204,8 @@ exports.getDashboardStats = async (req, res, next) => {
         inventoryData,
         revenueData,
         recentSalesData,
-        lowStockItems
-      }
+        lowStockItems,
+      },
     });
   } catch (err) {
     next(err);
@@ -207,23 +217,28 @@ exports.getInventoryChartData = async (companyId) => {
   try {
     // Get inventory categories and their counts
     const inventoryCategories = await Inventory.aggregate([
-      { $match: { companyId: mongoose.Types.ObjectId(companyId) } },
+      { $match: { companyId: new mongoose.Types.ObjectId(companyId) } },
       { $group: { _id: "$category", count: { $sum: "$quantity" } } },
       { $sort: { count: -1 } },
-      { $limit: 5 }
+      { $limit: 5 },
     ]);
 
     // Format data for charts
-    const labels = inventoryCategories.map(item => item._id || "Uncategorized");
-    const data = inventoryCategories.map(item => item.count);
+    const labels = inventoryCategories.map(
+      (item) => item._id || "Uncategorized"
+    );
+    const data = inventoryCategories.map((item) => item.count);
 
     // Generate random colors for chart
-    const backgroundColors = labels.map(() => 
-      `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`
+    const backgroundColors = labels.map(
+      () =>
+        `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+          Math.random() * 255
+        )}, ${Math.floor(Math.random() * 255)}, 0.2)`
     );
-    
-    const borderColors = backgroundColors.map(color => 
-      color.replace('0.2', '1')
+
+    const borderColors = backgroundColors.map((color) =>
+      color.replace("0.2", "1")
     );
 
     return {
@@ -265,7 +280,7 @@ exports.getInventoryChartData = async (companyId) => {
       ],
     };
   }
-}
+};
 
 // Helper function to get sales and revenue data for charts
 exports.getSalesAndRevenueData = async (companyId) => {
@@ -274,43 +289,60 @@ exports.getSalesAndRevenueData = async (companyId) => {
     const today = new Date();
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(today.getMonth() - 6);
-    
+
     // Get monthly sales data
-    const monthlySales = await Shipment.aggregate([
-      { 
-        $match: { 
-          companyId: mongoose.Types.ObjectId(companyId),
-          status: "delivered",
-          createdAt: { $gte: sixMonthsAgo, $lte: today }
-        } 
+    const monthlySales = await Inventory.aggregate([
+      {
+        $match: {
+          companyId: new mongoose.Types.ObjectId(companyId),
+          inventoryStatus: "sale",
+          createdAt: { $gte: sixMonthsAgo, $lte: today },
+        },
       },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
           count: { $sum: 1 },
-          revenue: { $sum: "$totalAmount" }
-        }
+          revenue: { $sum: "$price.retail" },
+        },
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     // Format data for charts
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const labels = [];
     const salesData = [];
     const revenueData = [];
-    
+
     // Get last 6 months
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       const monthName = months[d.getMonth()];
-      
+
       labels.push(monthName);
-      
+
       // Find data for this month
-      const monthData = monthlySales.find(item => item._id === monthYear);
+      console.log(monthlySales);
+      const monthData = monthlySales.find((item) => item._id === monthYear);
       salesData.push(monthData ? monthData.count : 0);
       revenueData.push(monthData ? monthData.revenue : 0);
     }
@@ -340,7 +372,7 @@ exports.getSalesAndRevenueData = async (companyId) => {
             tension: 0.1,
           },
         ],
-      }
+      },
     };
   } catch (error) {
     console.error("Error getting sales and revenue data:", error);
@@ -369,29 +401,29 @@ exports.getSalesAndRevenueData = async (companyId) => {
             tension: 0.1,
           },
         ],
-      }
+      },
     };
   }
-}
+};
 
 // Helper function to get recent sales data for table
 exports.getRecentSalesData = async (companyId) => {
   try {
-    const recentSales = await Shipment.find({ 
+    const recentSales = await Inventory.find({
       companyId: companyId,
-      status: { $in: ["delivered", "processing", "shipped"] }
+      inventoryStatus: { $in: ["sale", "pending_sale"] },
     })
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .populate('items.productId', 'name');
-    
-    return recentSales.map(sale => ({
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("_id", "name");
+
+    return recentSales.map((sale) => ({
       id: sale._id,
-      product: sale.items && sale.items[0] ? sale.items[0].productId?.name || 'Multiple Products' : 'Unknown',
-      customer: sale.customerName || 'Unknown Customer',
-      date: sale.createdAt.toISOString().split('T')[0],
-      amount: sale.totalAmount || 0,
-      status: sale.status
+      product: sale ? sale.name : "Unknown",
+      customer: sale.customerName || "Unknown Customer",
+      date: sale.createdAt.toISOString().split("T")[0],
+      amount: sale.price.retail || 0,
+      status: sale.inventoryStatus,
     }));
   } catch (error) {
     console.error("Error getting recent sales data:", error);
@@ -438,24 +470,24 @@ exports.getRecentSalesData = async (companyId) => {
       },
     ];
   }
-}
+};
 
 // Helper function to get low stock items for table
 exports.getLowStockItems = async (companyId) => {
   try {
     const lowStock = await Inventory.find({
       companyId: companyId,
-      $expr: { $lte: ["$quantity", "$minQuantity"] }
+      $expr: { $lte: ["$quantity", "$threshold"] },
     })
-    .sort({ quantity: 1 })
-    .limit(5);
-    
-    return lowStock.map(item => ({
+      .sort({ quantity: 1 })
+      .limit(5);
+
+    return lowStock.map((item) => ({
       id: item._id,
       product: item.name,
-      category: item.category || 'Uncategorized',
+      category: item.category || "Uncategorized",
       quantity: item.quantity,
-      threshold: item.minQuantity
+      threshold: item.threshold,
     }));
   } catch (error) {
     console.error("Error getting low stock items:", error);
@@ -497,4 +529,4 @@ exports.getLowStockItems = async (companyId) => {
       },
     ];
   }
-}
+};

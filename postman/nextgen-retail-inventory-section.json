@@ -1,0 +1,384 @@
+{
+  "name": "Inventory Management",
+  "description": "API endpoints for inventory management",
+  "item": [
+    {
+      "name": "Get All Inventory Items",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory"]
+        },
+        "description": "Get all inventory items for the company"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c88\",\n        \"name\": \"Product A\",\n        \"sku\": \"SKU001\",\n        \"description\": \"Description for Product A\",\n        \"category\": \"Electronics\",\n        \"quantity\": 100,\n        \"unitPrice\": 19.99,\n        \"status\": \"in_stock\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"shelf\": {\n          \"_id\": \"60d21b4667d0d8992e610c8a\",\n          \"name\": \"Shelf A\"\n        },\n        \"bin\": {\n          \"_id\": \"60d21b4667d0d8992e610c8b\",\n          \"name\": \"Bin 1\"\n        },\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c8c\",\n        \"name\": \"Product B\",\n        \"sku\": \"SKU002\",\n        \"description\": \"Description for Product B\",\n        \"category\": \"Clothing\",\n        \"quantity\": 50,\n        \"unitPrice\": 29.99,\n        \"status\": \"in_stock\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"shelf\": {\n          \"_id\": \"60d21b4667d0d8992e610c8d\",\n          \"name\": \"Shelf B\"\n        },\n        \"bin\": {\n          \"_id\": \"60d21b4667d0d8992e610c8e\",\n          \"name\": \"Bin 2\"\n        },\n        \"createdAt\": \"2023-07-19T11:15:30.456Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Single Inventory Item",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{inventoryId}}"]
+        },
+        "description": "Get details of a specific inventory item"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "{{inventoryId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Product A\",\n      \"sku\": \"SKU001\",\n      \"description\": \"Description for Product A\",\n      \"category\": \"Electronics\",\n      \"quantity\": 100,\n      \"unitPrice\": 19.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create Inventory Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"New Product\",\n  \"sku\": \"SKU003\",\n  \"description\": \"Description for New Product\",\n  \"category\": \"Electronics\",\n  \"quantity\": 75,\n  \"unitPrice\": 39.99,\n  \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n  \"shelfId\": \"60d21b4667d0d8992e610c8a\",\n  \"binId\": \"60d21b4667d0d8992e610c8b\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory"]
+        },
+        "description": "Create a new inventory item"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Product\",\n  \"sku\": \"SKU003\",\n  \"description\": \"Description for New Product\",\n  \"category\": \"Electronics\",\n  \"quantity\": 75,\n  \"unitPrice\": 39.99,\n  \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n  \"shelfId\": \"60d21b4667d0d8992e610c8a\",\n  \"binId\": \"60d21b4667d0d8992e610c8b\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item created successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c8f\",\n      \"name\": \"New Product\",\n      \"sku\": \"SKU003\",\n      \"description\": \"Description for New Product\",\n      \"category\": \"Electronics\",\n      \"quantity\": 75,\n      \"unitPrice\": 39.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"createdAt\": \"2023-07-19T12:45:30.789Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Update Inventory Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Product A\",\n  \"description\": \"Updated description for Product A\",\n  \"quantity\": 120,\n  \"unitPrice\": 24.99\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{inventoryId}}"]
+        },
+        "description": "Update an existing inventory item"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Product A\",\n  \"description\": \"Updated description for Product A\",\n  \"quantity\": 120,\n  \"unitPrice\": 24.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "{{inventoryId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item updated successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Updated Product A\",\n      \"sku\": \"SKU001\",\n      \"description\": \"Updated description for Product A\",\n      \"category\": \"Electronics\",\n      \"quantity\": 120,\n      \"unitPrice\": 24.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"updatedAt\": \"2023-07-19T14:20:15.678Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete Inventory Item",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{inventoryId}}"]
+        },
+        "description": "Delete an inventory item"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "{{inventoryId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item deleted successfully\",\n  \"data\": {}\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Purchase Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/purchase",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "status", "purchase"]
+        },
+        "description": "Get inventory items with purchase status"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/purchase",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "status", "purchase"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c90\",\n        \"name\": \"Product C\",\n        \"sku\": \"SKU004\",\n        \"description\": \"Description for Product C\",\n        \"category\": \"Furniture\",\n        \"quantity\": 30,\n        \"unitPrice\": 149.99,\n        \"status\": \"purchase\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T15:10:25.987Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Sale Pending Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/sale-pending",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "status", "sale-pending"]
+        },
+        "description": "Get inventory items with sale pending status"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/sale-pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "status", "sale-pending"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c91\",\n        \"name\": \"Product D\",\n        \"sku\": \"SKU005\",\n        \"description\": \"Description for Product D\",\n        \"category\": \"Electronics\",\n        \"quantity\": 15,\n        \"unitPrice\": 299.99,\n        \"status\": \"sale_pending\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T16:05:40.123Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Sale Inventory",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/status/sale",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "status", "sale"]
+        },
+        "description": "Get inventory items with sale status"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/sale",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "status", "sale"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c92\",\n        \"name\": \"Product E\",\n        \"sku\": \"SKU006\",\n        \"description\": \"Description for Product E\",\n        \"category\": \"Clothing\",\n        \"quantity\": 25,\n        \"unitPrice\": 49.99,\n        \"status\": \"sale\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T17:20:55.456Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Update Inventory Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"sale_pending\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{inventoryId}}", "status"]
+        },
+        "description": "Update the status of an inventory item"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"sale_pending\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "{{inventoryId}}", "status"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Inventory status updated successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Updated Product A\",\n      \"sku\": \"SKU001\",\n      \"status\": \"sale_pending\",\n      \"updatedAt\": \"2023-07-19T18:30:10.789Z\"\n    }\n  }\n}"
+        }
+      ]
+    }
+  ]
+}

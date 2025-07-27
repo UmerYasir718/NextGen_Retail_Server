@@ -1,0 +1,220 @@
+{
+  "name": "User Management",
+  "description": "API endpoints for user management",
+  "item": [
+    {
+      "name": "Get All Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "user"]
+        },
+        "description": "Get all users for the company (Admin only)"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"users\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c85\",\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"role\": \"store_manager\",\n        \"company\": \"60d21b4667d0d8992e610c86\",\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c96\",\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\",\n        \"role\": \"analyst\",\n        \"company\": \"60d21b4667d0d8992e610c86\",\n        \"createdAt\": \"2023-07-19T11:45:30.456Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Single User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "user", "{{userId}}"]
+        },
+        "description": "Get details of a specific user (Admin only)"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "{{userId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c85\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"store_manager\",\n      \"company\": {\n        \"_id\": \"60d21b4667d0d8992e610c86\",\n        \"name\": \"ABC Retail\"\n      },\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"analyst\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "user"]
+        },
+        "description": "Create a new user (Admin only)"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"analyst\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"User created successfully\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c97\",\n      \"name\": \"New User\",\n      \"email\": \"newuser@example.com\",\n      \"role\": \"analyst\",\n      \"company\": \"60d21b4667d0d8992e610c86\",\n      \"createdAt\": \"2023-07-19T15:20:45.789Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Update User",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"store_manager\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "user", "{{userId}}"]
+        },
+        "description": "Update an existing user (Admin only)"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"store_manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "{{userId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"User updated successfully\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c97\",\n      \"name\": \"Updated User Name\",\n      \"role\": \"store_manager\",\n      \"updatedAt\": \"2023-07-19T16:30:20.456Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete User",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "user", "{{userId}}"]
+        },
+        "description": "Delete a user (Admin only)"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "{{userId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"User deleted successfully\",\n  \"data\": {}\n}"
+        }
+      ]
+    }
+  ]
+}

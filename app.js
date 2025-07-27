@@ -48,6 +48,9 @@ const notificationRoutes = require('./routes/notification.routes');
 const reportRoutes = require('./routes/report.routes');
 const forecastRoutes = require('./routes/forecast.routes');
 const fileRoutes = require('./routes/file.routes');
+const uhfReaderRoutes = require('./routes/uhfReader.routes');
+const uhfTagRoutes = require('./routes/uhfTag.routes');
+const fcmTokenRoutes = require('./routes/fcmToken.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -65,6 +68,9 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/forecast', forecastRoutes);
+app.use('/api/uhf-readers', uhfReaderRoutes);
+app.use('/api/uhf-tags', uhfTagRoutes);
+app.use('/api', fcmTokenRoutes);
 
 // Root route
 app.get('/', (req, res) => {

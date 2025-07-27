@@ -1,0 +1,316 @@
+{
+  "name": "Shipment Management",
+  "description": "API endpoints for shipment management",
+  "item": [
+    {
+      "name": "Get All Shipments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment"]
+        },
+        "description": "Get all shipments for the company"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"shipments\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c93\",\n        \"trackingNumber\": \"SHIP001\",\n        \"carrier\": \"FedEx\",\n        \"status\": \"in_transit\",\n        \"origin\": \"Warehouse A\",\n        \"destination\": \"Store B\",\n        \"estimatedDelivery\": \"2023-07-25T00:00:00.000Z\",\n        \"items\": [\n          {\n            \"inventory\": \"60d21b4667d0d8992e610c88\",\n            \"quantity\": 20\n          }\n        ],\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c94\",\n        \"trackingNumber\": \"SHIP002\",\n        \"carrier\": \"UPS\",\n        \"status\": \"delivered\",\n        \"origin\": \"Warehouse B\",\n        \"destination\": \"Store A\",\n        \"deliveredAt\": \"2023-07-18T14:25:30.456Z\",\n        \"items\": [\n          {\n            \"inventory\": \"60d21b4667d0d8992e610c8c\",\n            \"quantity\": 15\n          }\n        ],\n        \"createdAt\": \"2023-07-15T09:20:15.789Z\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Shipment Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment", "stats"]
+        },
+        "description": "Get shipment statistics"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment", "stats"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"total\": 10,\n      \"inTransit\": 3,\n      \"delivered\": 5,\n      \"pending\": 2,\n      \"byCarrier\": {\n        \"FedEx\": 4,\n        \"UPS\": 3,\n        \"DHL\": 3\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Single Shipment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment", "{{shipmentId}}"]
+        },
+        "description": "Get details of a specific shipment"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment", "{{shipmentId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c93\",\n      \"trackingNumber\": \"SHIP001\",\n      \"carrier\": \"FedEx\",\n      \"status\": \"in_transit\",\n      \"origin\": \"Warehouse A\",\n      \"destination\": \"Store B\",\n      \"estimatedDelivery\": \"2023-07-25T00:00:00.000Z\",\n      \"items\": [\n        {\n          \"inventory\": {\n            \"_id\": \"60d21b4667d0d8992e610c88\",\n            \"name\": \"Product A\",\n            \"sku\": \"SKU001\"\n          },\n          \"quantity\": 20\n        }\n      ],\n      \"documents\": [],\n      \"notes\": \"Handle with care\",\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create Shipment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"trackingNumber\": \"SHIP003\",\n  \"carrier\": \"DHL\",\n  \"status\": \"pending\",\n  \"origin\": \"Warehouse C\",\n  \"destination\": \"Store D\",\n  \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventory\": \"60d21b4667d0d8992e610c90\",\n      \"quantity\": 10\n    }\n  ],\n  \"notes\": \"Priority shipment\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment"]
+        },
+        "description": "Create a new shipment"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"SHIP003\",\n  \"carrier\": \"DHL\",\n  \"status\": \"pending\",\n  \"origin\": \"Warehouse C\",\n  \"destination\": \"Store D\",\n  \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventory\": \"60d21b4667d0d8992e610c90\",\n      \"quantity\": 10\n    }\n  ],\n  \"notes\": \"Priority shipment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Shipment created successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"trackingNumber\": \"SHIP003\",\n      \"carrier\": \"DHL\",\n      \"status\": \"pending\",\n      \"origin\": \"Warehouse C\",\n      \"destination\": \"Store D\",\n      \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n      \"items\": [\n        {\n          \"inventory\": \"60d21b4667d0d8992e610c90\",\n          \"quantity\": 10\n        }\n      ],\n      \"notes\": \"Priority shipment\",\n      \"createdAt\": \"2023-07-19T19:15:30.123Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Update Shipment",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_transit\",\n  \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n  \"notes\": \"Updated to in-transit status\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment", "{{shipmentId}}"]
+        },
+        "description": "Update an existing shipment"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_transit\",\n  \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n  \"notes\": \"Updated to in-transit status\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment", "{{shipmentId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Shipment updated successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"status\": \"in_transit\",\n      \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n      \"notes\": \"Updated to in-transit status\",\n      \"updatedAt\": \"2023-07-20T09:45:20.456Z\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete Shipment",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment", "{{shipmentId}}"]
+        },
+        "description": "Delete a shipment"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment", "{{shipmentId}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Shipment deleted successfully\",\n  \"data\": {}\n}"
+        }
+      ]
+    },
+    {
+      "name": "Upload Shipment Document",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "document",
+              "type": "file",
+              "src": "/path/to/document.pdf"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}/document",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shipment", "{{shipmentId}}", "document"]
+        },
+        "description": "Upload a document for a shipment"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": "/path/to/document.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}/document",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipment", "{{shipmentId}}", "document"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Document uploaded successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"documents\": [\n        {\n          \"name\": \"document.pdf\",\n          \"path\": \"/uploads/shipments/60d21b4667d0d8992e610c95/document.pdf\",\n          \"uploadedAt\": \"2023-07-20T11:30:15.789Z\"\n        }\n      ],\n      \"updatedAt\": \"2023-07-20T11:30:15.789Z\"\n    }\n  }\n}"
+        }
+      ]
+    }
+  ]
+}

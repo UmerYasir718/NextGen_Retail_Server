@@ -1,0 +1,527 @@
+{
+  "info": {
+    "_postman_id": "a5f2e3b1-c8d4-4e5f-9a6b-7c8d9e0f1a2b",
+    "name": "UHF Tracking System",
+    "description": "API collection for UHF Reader inventory tracking system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login to get authentication token"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "UHF Readers",
+      "item": [
+        {
+          "name": "Get All UHF Readers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Active",
+                  "disabled": true
+                },
+                {
+                  "key": "locationType",
+                  "value": "Bin",
+                  "disabled": true
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all UHF readers for the authenticated user's company"
+          },
+          "response": []
+        },
+        {
+          "name": "Get UHF Reader",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers/{{readerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers",
+                "{{readerId}}"
+              ]
+            },
+            "description": "Get a specific UHF reader by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create UHF Reader",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"UHF Reader 001\",\n    \"uhfId\": \"UHF-001\",\n    \"description\": \"UHF Reader for Warehouse A, Zone 1, Shelf 2, Bin 3\",\n    \"status\": \"Active\",\n    \"location\": {\n        \"type\": \"Bin\",\n        \"warehouseId\": \"{{warehouseId}}\",\n        \"zoneId\": \"{{zoneId}}\",\n        \"shelfId\": \"{{shelfId}}\",\n        \"binId\": \"{{binId}}\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers"
+              ]
+            },
+            "description": "Create a new UHF reader"
+          },
+          "response": []
+        },
+        {
+          "name": "Update UHF Reader",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"UHF Reader 001 - Updated\",\n    \"description\": \"Updated description\",\n    \"status\": \"Active\",\n    \"location\": {\n        \"type\": \"Zone\",\n        \"warehouseId\": \"{{warehouseId}}\",\n        \"zoneId\": \"{{zoneId}}\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers/{{readerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers",
+                "{{readerId}}"
+              ]
+            },
+            "description": "Update an existing UHF reader"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete UHF Reader",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers/{{readerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers",
+                "{{readerId}}"
+              ]
+            },
+            "description": "Delete a UHF reader"
+          },
+          "response": []
+        },
+        {
+          "name": "Get UHF Reader by UHF ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-readers/uhf/{{uhfId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-readers",
+                "uhf",
+                "{{uhfId}}"
+              ]
+            },
+            "description": "Get a UHF reader by its UHF ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "UHF Reader management endpoints"
+    },
+    {
+      "name": "UHF Tags",
+      "item": [
+        {
+          "name": "Detect UHF Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tagId\": \"TAG-001\",\n    \"uhfId\": \"UHF-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uhf-tags/detect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uhf-tags",
+                "detect"
+              ]
+            },
+            "description": "Process a UHF tag detection event"
+          },
+          "response": []
+        }
+      ],
+      "description": "UHF Tag detection endpoints"
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "Stock",
+                  "disabled": true
+                },
+                {
+                  "key": "read",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all notifications for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Mark a notification as read"
+          },
+          "response": []
+        }
+      ],
+      "description": "Notification management endpoints"
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Get Inventory Item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Get a specific inventory item by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inventory Item by Tag ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/tag/{{tagId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "tag",
+                "{{tagId}}"
+              ]
+            },
+            "description": "Get an inventory item by its tag ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"quantity\": 10,\n    \"threshold\": 5,\n    \"inventoryStatus\": \"purchase\",\n    \"lowStockAlertSent\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Update an inventory item"
+          },
+          "response": []
+        }
+      ],
+      "description": "Inventory management endpoints"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "warehouseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "zoneId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "shelfId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "binId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "readerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uhfId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tagId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

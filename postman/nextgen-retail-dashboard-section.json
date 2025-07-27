@@ -1,0 +1,246 @@
+{
+  "name": "Dashboard & Forecasting",
+  "description": "API endpoints for dashboard statistics and forecasting",
+  "item": [
+    {
+      "name": "Get Company Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/company/dashboard/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "company", "dashboard", "stats"]
+        },
+        "description": "Get dashboard statistics for the company"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/company/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company", "dashboard", "stats"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"inventorySummary\": {\n        \"totalItems\": 250,\n        \"inStock\": 180,\n        \"purchase\": 30,\n        \"salePending\": 25,\n        \"sale\": 15\n      },\n      \"warehouseSummary\": {\n        \"totalWarehouses\": 3,\n        \"totalCapacity\": 5000,\n        \"usedCapacity\": 2500,\n        \"utilizationPercentage\": 50\n      },\n      \"shipmentSummary\": {\n        \"total\": 45,\n        \"pending\": 10,\n        \"inTransit\": 20,\n        \"delivered\": 15\n      },\n      \"financialSummary\": {\n        \"totalInventoryValue\": 125000,\n        \"monthlyRevenue\": 45000,\n        \"monthlyCost\": 30000,\n        \"monthlyProfit\": 15000\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Forecasting Overview",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/forecast",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "forecast"]
+        },
+        "description": "Get forecasting overview"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecast"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"AI Forecasting API is working\",\n  \"data\": {\n    \"forecasts\": []\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Generate Inventory Demand Forecast",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"period\": \"30days\",\n  \"categories\": [\"Electronics\", \"Clothing\"],\n  \"includeHistoricalData\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/forecast/inventory-demand",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "forecast", "inventory-demand"]
+        },
+        "description": "Generate inventory demand forecast"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"30days\",\n  \"categories\": [\"Electronics\", \"Clothing\"],\n  \"includeHistoricalData\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/inventory-demand",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecast", "inventory-demand"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Inventory demand forecast generated\",\n  \"data\": {\n    \"forecast\": {\n      \"generatedAt\": \"2023-07-19T14:30:45.123Z\",\n      \"period\": \"30days\",\n      \"items\": [\n        {\n          \"category\": \"Electronics\",\n          \"predictedDemand\": 120,\n          \"confidenceLevel\": 0.85,\n          \"historicalAverage\": 100,\n          \"trend\": \"increasing\"\n        },\n        {\n          \"category\": \"Clothing\",\n          \"predictedDemand\": 80,\n          \"confidenceLevel\": 0.75,\n          \"historicalAverage\": 85,\n          \"trend\": \"stable\"\n        }\n      ]\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Reorder Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/forecast/reorder-recommendations",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "forecast", "reorder-recommendations"]
+        },
+        "description": "Get reorder recommendations based on forecasting"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/reorder-recommendations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecast", "reorder-recommendations"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Reorder recommendations generated\",\n  \"data\": {\n    \"recommendations\": [\n      {\n        \"inventoryId\": \"60d21b4667d0d8992e610c88\",\n        \"name\": \"Product A\",\n        \"sku\": \"SKU001\",\n        \"currentStock\": 25,\n        \"recommendedReorderQuantity\": 75,\n        \"priority\": \"high\",\n        \"estimatedDaysUntilStockout\": 7\n      },\n      {\n        \"inventoryId\": \"60d21b4667d0d8992e610c8c\",\n        \"name\": \"Product B\",\n        \"sku\": \"SKU002\",\n        \"currentStock\": 40,\n        \"recommendedReorderQuantity\": 50,\n        \"priority\": \"medium\",\n        \"estimatedDaysUntilStockout\": 14\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Warehouse Optimization Suggestions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/forecast/warehouse-optimization",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "forecast", "warehouse-optimization"]
+        },
+        "description": "Get warehouse optimization suggestions"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/warehouse-optimization",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecast", "warehouse-optimization"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Warehouse optimization suggestions generated\",\n  \"data\": {\n    \"suggestions\": [\n      {\n        \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\",\n        \"currentUtilization\": 65,\n        \"optimizationSuggestions\": [\n          {\n            \"type\": \"relocation\",\n            \"description\": \"Move slow-moving electronics to Warehouse B\",\n            \"potentialSpaceSaving\": \"15%\",\n            \"implementationComplexity\": \"medium\"\n          },\n          {\n            \"type\": \"consolidation\",\n            \"description\": \"Consolidate clothing items to free up shelf space\",\n            \"potentialSpaceSaving\": \"8%\",\n            \"implementationComplexity\": \"low\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Seasonal Trend Analysis",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/forecast/seasonal-trends",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "forecast", "seasonal-trends"]
+        },
+        "description": "Get seasonal trend analysis"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/seasonal-trends",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecast", "seasonal-trends"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Seasonal trend analysis generated\",\n  \"data\": {\n    \"trends\": [\n      {\n        \"season\": \"Summer\",\n        \"topCategories\": [\"Clothing\", \"Outdoor Equipment\"],\n        \"predictedGrowth\": 15,\n        \"recommendations\": \"Increase stock of summer clothing and outdoor items by 20%\"\n      },\n      {\n        \"season\": \"Winter\",\n        \"topCategories\": [\"Electronics\", \"Home Goods\"],\n        \"predictedGrowth\": 25,\n        \"recommendations\": \"Prepare holiday promotions for electronics and home goods\"\n      }\n    ]\n  }\n}"
+        }
+      ]
+    }
+  ]
+}

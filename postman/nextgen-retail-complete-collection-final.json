@@ -1,0 +1,1915 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "NextGen Retail Server - Complete API",
+    "description": "A comprehensive collection of API endpoints for NextGen Retail Server application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "API endpoints for user authentication and authorization",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"store_manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user in the system"
+          },
+          "response": [
+            {
+              "name": "Successful Registration",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"store_manager\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully. Please verify your email.\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c85\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"store_manager\",\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login a user and get authentication token"
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c85\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"store_manager\",\n      \"company\": {\n        \"_id\": \"60d21b4667d0d8992e610c86\",\n        \"name\": \"ABC Retail\"\n      }\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Get the currently logged in user's profile"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "me"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c85\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"store_manager\",\n      \"company\": {\n        \"_id\": \"60d21b4667d0d8992e610c86\",\n        \"name\": \"ABC Retail\"\n      },\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Request a password reset link"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/forgot-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "forgot-password"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset email sent\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password/{{resetToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password",
+                "{{resetToken}}"
+              ]
+            },
+            "description": "Reset user password with token"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"newpassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/reset-password/{{resetToken}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "reset-password",
+                    "{{resetToken}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset successful\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Super Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/superadmin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "superadmin",
+                "login"
+              ]
+            },
+            "description": "Login as super admin"
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpassword\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/superadmin/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "superadmin",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Super admin login successful\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c87\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@example.com\",\n      \"role\": \"super_admin\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout the current user"
+          },
+          "response": [
+            {
+              "name": "Successful Logout",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged out successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inventory Management",
+      "description": "API endpoints for inventory management",
+      "item": [
+        {
+          "name": "Get All Inventory Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory"
+              ]
+            },
+            "description": "Get all inventory items for the company"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c88\",\n        \"name\": \"Product A\",\n        \"sku\": \"SKU001\",\n        \"description\": \"Description for Product A\",\n        \"category\": \"Electronics\",\n        \"quantity\": 100,\n        \"unitPrice\": 19.99,\n        \"status\": \"in_stock\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"shelf\": {\n          \"_id\": \"60d21b4667d0d8992e610c8a\",\n          \"name\": \"Shelf A\"\n        },\n        \"bin\": {\n          \"_id\": \"60d21b4667d0d8992e610c8b\",\n          \"name\": \"Bin 1\"\n        },\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c8c\",\n        \"name\": \"Product B\",\n        \"sku\": \"SKU002\",\n        \"description\": \"Description for Product B\",\n        \"category\": \"Clothing\",\n        \"quantity\": 50,\n        \"unitPrice\": 29.99,\n        \"status\": \"in_stock\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"shelf\": {\n          \"_id\": \"60d21b4667d0d8992e610c8d\",\n          \"name\": \"Shelf B\"\n        },\n        \"bin\": {\n          \"_id\": \"60d21b4667d0d8992e610c8e\",\n          \"name\": \"Bin 2\"\n        },\n        \"createdAt\": \"2023-07-19T11:15:30.456Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Inventory Item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{inventoryId}}"
+              ]
+            },
+            "description": "Get details of a specific inventory item"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "{{inventoryId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Product A\",\n      \"sku\": \"SKU001\",\n      \"description\": \"Description for Product A\",\n      \"category\": \"Electronics\",\n      \"quantity\": 100,\n      \"unitPrice\": 19.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Product\",\n  \"sku\": \"SKU003\",\n  \"description\": \"Description for New Product\",\n  \"category\": \"Electronics\",\n  \"quantity\": 75,\n  \"unitPrice\": 39.99,\n  \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n  \"shelfId\": \"60d21b4667d0d8992e610c8a\",\n  \"binId\": \"60d21b4667d0d8992e610c8b\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory"
+              ]
+            },
+            "description": "Create a new inventory item"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New Product\",\n  \"sku\": \"SKU003\",\n  \"description\": \"Description for New Product\",\n  \"category\": \"Electronics\",\n  \"quantity\": 75,\n  \"unitPrice\": 39.99,\n  \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n  \"shelfId\": \"60d21b4667d0d8992e610c8a\",\n  \"binId\": \"60d21b4667d0d8992e610c8b\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item created successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c8f\",\n      \"name\": \"New Product\",\n      \"sku\": \"SKU003\",\n      \"description\": \"Description for New Product\",\n      \"category\": \"Electronics\",\n      \"quantity\": 75,\n      \"unitPrice\": 39.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"createdAt\": \"2023-07-19T12:45:30.789Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Product A\",\n  \"description\": \"Updated description for Product A\",\n  \"quantity\": 120,\n  \"unitPrice\": 24.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{inventoryId}}"
+              ]
+            },
+            "description": "Update an existing inventory item"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Product A\",\n  \"description\": \"Updated description for Product A\",\n  \"quantity\": 120,\n  \"unitPrice\": 24.99\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "{{inventoryId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item updated successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Updated Product A\",\n      \"sku\": \"SKU001\",\n      \"description\": \"Updated description for Product A\",\n      \"category\": \"Electronics\",\n      \"quantity\": 120,\n      \"unitPrice\": 24.99,\n      \"status\": \"in_stock\",\n      \"warehouse\": {\n        \"_id\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\"\n      },\n      \"shelf\": {\n        \"_id\": \"60d21b4667d0d8992e610c8a\",\n        \"name\": \"Shelf A\"\n      },\n      \"bin\": {\n        \"_id\": \"60d21b4667d0d8992e610c8b\",\n        \"name\": \"Bin 1\"\n      },\n      \"updatedAt\": \"2023-07-19T14:20:15.678Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{inventoryId}}"
+              ]
+            },
+            "description": "Delete an inventory item"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "{{inventoryId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Inventory item deleted successfully\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Purchase Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/purchase",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "status",
+                "purchase"
+              ]
+            },
+            "description": "Get inventory items with purchase status"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/status/purchase",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "status",
+                    "purchase"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c90\",\n        \"name\": \"Product C\",\n        \"sku\": \"SKU004\",\n        \"description\": \"Description for Product C\",\n        \"category\": \"Furniture\",\n        \"quantity\": 30,\n        \"unitPrice\": 149.99,\n        \"status\": \"purchase\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T15:10:25.987Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Sale Pending Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/sale-pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "status",
+                "sale-pending"
+              ]
+            },
+            "description": "Get inventory items with sale pending status"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/status/sale-pending",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "status",
+                    "sale-pending"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c91\",\n        \"name\": \"Product D\",\n        \"sku\": \"SKU005\",\n        \"description\": \"Description for Product D\",\n        \"category\": \"Electronics\",\n        \"quantity\": 15,\n        \"unitPrice\": 299.99,\n        \"status\": \"sale_pending\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T16:05:40.123Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Sale Inventory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/status/sale",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "status",
+                "sale"
+              ]
+            },
+            "description": "Get inventory items with sale status"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/status/sale",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "status",
+                    "sale"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 1,\n  \"data\": {\n    \"items\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c92\",\n        \"name\": \"Product E\",\n        \"sku\": \"SKU006\",\n        \"description\": \"Description for Product E\",\n        \"category\": \"Clothing\",\n        \"quantity\": 25,\n        \"unitPrice\": 49.99,\n        \"status\": \"sale\",\n        \"warehouse\": {\n          \"_id\": \"60d21b4667d0d8992e610c89\",\n          \"name\": \"Main Warehouse\"\n        },\n        \"createdAt\": \"2023-07-19T17:20:55.456Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Inventory Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"sale_pending\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{inventoryId}}",
+                "status"
+              ]
+            },
+            "description": "Update the status of an inventory item"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"sale_pending\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inventory",
+                    "{{inventoryId}}",
+                    "status"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Inventory status updated successfully\",\n  \"data\": {\n    \"item\": {\n      \"_id\": \"60d21b4667d0d8992e610c88\",\n      \"name\": \"Updated Product A\",\n      \"sku\": \"SKU001\",\n      \"status\": \"sale_pending\",\n      \"updatedAt\": \"2023-07-19T18:30:10.789Z\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Shipment Management",
+      "description": "API endpoints for shipment management",
+      "item": [
+        {
+          "name": "Get All Shipments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment"
+              ]
+            },
+            "description": "Get all shipments for the company"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"shipments\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c93\",\n        \"trackingNumber\": \"SHIP001\",\n        \"carrier\": \"FedEx\",\n        \"status\": \"in_transit\",\n        \"origin\": \"Warehouse A\",\n        \"destination\": \"Store B\",\n        \"estimatedDelivery\": \"2023-07-25T00:00:00.000Z\",\n        \"items\": [\n          {\n            \"inventory\": \"60d21b4667d0d8992e610c88\",\n            \"quantity\": 20\n          }\n        ],\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c94\",\n        \"trackingNumber\": \"SHIP002\",\n        \"carrier\": \"UPS\",\n        \"status\": \"delivered\",\n        \"origin\": \"Warehouse B\",\n        \"destination\": \"Store A\",\n        \"deliveredAt\": \"2023-07-18T14:25:30.456Z\",\n        \"items\": [\n          {\n            \"inventory\": \"60d21b4667d0d8992e610c8c\",\n            \"quantity\": 15\n          }\n        ],\n        \"createdAt\": \"2023-07-15T09:20:15.789Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Shipment Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment",
+                "stats"
+              ]
+            },
+            "description": "Get shipment statistics"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment/stats",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment",
+                    "stats"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"total\": 10,\n      \"inTransit\": 3,\n      \"delivered\": 5,\n      \"pending\": 2,\n      \"byCarrier\": {\n        \"FedEx\": 4,\n        \"UPS\": 3,\n        \"DHL\": 3\n      }\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Shipment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": "Get details of a specific shipment"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment",
+                    "{{shipmentId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c93\",\n      \"trackingNumber\": \"SHIP001\",\n      \"carrier\": \"FedEx\",\n      \"status\": \"in_transit\",\n      \"origin\": \"Warehouse A\",\n      \"destination\": \"Store B\",\n      \"estimatedDelivery\": \"2023-07-25T00:00:00.000Z\",\n      \"items\": [\n        {\n          \"inventory\": {\n            \"_id\": \"60d21b4667d0d8992e610c88\",\n            \"name\": \"Product A\",\n            \"sku\": \"SKU001\"\n          },\n          \"quantity\": 20\n        }\n      ],\n      \"documents\": [],\n      \"notes\": \"Handle with care\",\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"SHIP003\",\n  \"carrier\": \"DHL\",\n  \"status\": \"pending\",\n  \"origin\": \"Warehouse C\",\n  \"destination\": \"Store D\",\n  \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventory\": \"60d21b4667d0d8992e610c90\",\n      \"quantity\": 10\n    }\n  ],\n  \"notes\": \"Priority shipment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment"
+              ]
+            },
+            "description": "Create a new shipment"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trackingNumber\": \"SHIP003\",\n  \"carrier\": \"DHL\",\n  \"status\": \"pending\",\n  \"origin\": \"Warehouse C\",\n  \"destination\": \"Store D\",\n  \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n  \"items\": [\n    {\n      \"inventory\": \"60d21b4667d0d8992e610c90\",\n      \"quantity\": 10\n    }\n  ],\n  \"notes\": \"Priority shipment\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Shipment created successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"trackingNumber\": \"SHIP003\",\n      \"carrier\": \"DHL\",\n      \"status\": \"pending\",\n      \"origin\": \"Warehouse C\",\n      \"destination\": \"Store D\",\n      \"estimatedDelivery\": \"2023-07-30T00:00:00.000Z\",\n      \"items\": [\n        {\n          \"inventory\": \"60d21b4667d0d8992e610c90\",\n          \"quantity\": 10\n        }\n      ],\n      \"notes\": \"Priority shipment\",\n      \"createdAt\": \"2023-07-19T19:15:30.123Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Shipment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_transit\",\n  \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n  \"notes\": \"Updated to in-transit status\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": "Update an existing shipment"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"in_transit\",\n  \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n  \"notes\": \"Updated to in-transit status\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment",
+                    "{{shipmentId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Shipment updated successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"status\": \"in_transit\",\n      \"estimatedDelivery\": \"2023-07-28T00:00:00.000Z\",\n      \"notes\": \"Updated to in-transit status\",\n      \"updatedAt\": \"2023-07-20T09:45:20.456Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Shipment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": "Delete a shipment"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment",
+                    "{{shipmentId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Shipment deleted successfully\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Upload Shipment Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": "/path/to/document.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}/document",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipment",
+                "{{shipmentId}}",
+                "document"
+              ]
+            },
+            "description": "Upload a document for a shipment"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "document",
+                      "type": "file",
+                      "src": "/path/to/document.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/shipment/{{shipmentId}}/document",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "shipment",
+                    "{{shipmentId}}",
+                    "document"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Document uploaded successfully\",\n  \"data\": {\n    \"shipment\": {\n      \"_id\": \"60d21b4667d0d8992e610c95\",\n      \"documents\": [\n        {\n          \"name\": \"document.pdf\",\n          \"path\": \"/uploads/shipments/60d21b4667d0d8992e610c95/document.pdf\",\n          \"uploadedAt\": \"2023-07-20T11:30:15.789Z\"\n        }\n      ],\n      \"updatedAt\": \"2023-07-20T11:30:15.789Z\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "API endpoints for user management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            },
+            "description": "Get all users for the company (Admin only)"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/user",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"pagination\": {\n    \"next\": {\n      \"page\": 2,\n      \"limit\": 10\n    }\n  },\n  \"data\": {\n    \"users\": [\n      {\n        \"_id\": \"60d21b4667d0d8992e610c85\",\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"role\": \"store_manager\",\n        \"company\": \"60d21b4667d0d8992e610c86\",\n        \"createdAt\": \"2023-07-19T10:30:45.123Z\"\n      },\n      {\n        \"_id\": \"60d21b4667d0d8992e610c96\",\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\",\n        \"role\": \"analyst\",\n        \"company\": \"60d21b4667d0d8992e610c86\",\n        \"createdAt\": \"2023-07-19T11:45:30.456Z\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Get details of a specific user (Admin only)"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c85\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"store_manager\",\n      \"company\": {\n        \"_id\": \"60d21b4667d0d8992e610c86\",\n        \"name\": \"ABC Retail\"\n      },\n      \"createdAt\": \"2023-07-19T10:30:45.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:45.123Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"analyst\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
+            },
+            "description": "Create a new user (Admin only)"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"analyst\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User created successfully\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c97\",\n      \"name\": \"New User\",\n      \"email\": \"newuser@example.com\",\n      \"role\": \"analyst\",\n      \"company\": \"60d21b4667d0d8992e610c86\",\n      \"createdAt\": \"2023-07-19T15:20:45.789Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"store_manager\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Update an existing user (Admin only)"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"store_manager\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User updated successfully\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"60d21b4667d0d8992e610c97\",\n      \"name\": \"Updated User Name\",\n      \"role\": \"store_manager\",\n      \"updatedAt\": \"2023-07-19T16:30:20.456Z\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Delete a user (Admin only)"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User deleted successfully\",\n  \"data\": {}\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Forecasting",
+      "description": "API endpoints for dashboard statistics and forecasting",
+      "item": [
+        {
+          "name": "Get Company Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/company/dashboard/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "company",
+                "dashboard",
+                "stats"
+              ]
+            },
+            "description": "Get dashboard statistics for the company"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/company/dashboard/stats",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "company",
+                    "dashboard",
+                    "stats"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"inventorySummary\": {\n        \"totalItems\": 250,\n        \"inStock\": 180,\n        \"purchase\": 30,\n        \"salePending\": 25,\n        \"sale\": 15\n      },\n      \"warehouseSummary\": {\n        \"totalWarehouses\": 3,\n        \"totalCapacity\": 5000,\n        \"usedCapacity\": 2500,\n        \"utilizationPercentage\": 50\n      },\n      \"shipmentSummary\": {\n        \"total\": 45,\n        \"pending\": 10,\n        \"inTransit\": 20,\n        \"delivered\": 15\n      },\n      \"financialSummary\": {\n        \"totalInventoryValue\": 125000,\n        \"monthlyRevenue\": 45000,\n        \"monthlyCost\": 30000,\n        \"monthlyProfit\": 15000\n      }\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Forecasting Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forecast"
+              ]
+            },
+            "description": "Get forecasting overview"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/forecast",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "forecast"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"AI Forecasting API is working\",\n  \"data\": {\n    \"forecasts\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate Inventory Demand Forecast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"30days\",\n  \"categories\": [\"Electronics\", \"Clothing\"],\n  \"includeHistoricalData\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/inventory-demand",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forecast",
+                "inventory-demand"
+              ]
+            },
+            "description": "Generate inventory demand forecast"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"period\": \"30days\",\n  \"categories\": [\"Electronics\", \"Clothing\"],\n  \"includeHistoricalData\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/forecast/inventory-demand",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "forecast",
+                    "inventory-demand"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Inventory demand forecast generated\",\n  \"data\": {\n    \"forecast\": {\n      \"generatedAt\": \"2023-07-19T14:30:45.123Z\",\n      \"period\": \"30days\",\n      \"items\": [\n        {\n          \"category\": \"Electronics\",\n          \"predictedDemand\": 120,\n          \"confidenceLevel\": 0.85,\n          \"historicalAverage\": 100,\n          \"trend\": \"increasing\"\n        },\n        {\n          \"category\": \"Clothing\",\n          \"predictedDemand\": 80,\n          \"confidenceLevel\": 0.75,\n          \"historicalAverage\": 85,\n          \"trend\": \"stable\"\n        }\n      ]\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Reorder Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/reorder-recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forecast",
+                "reorder-recommendations"
+              ]
+            },
+            "description": "Get reorder recommendations based on forecasting"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/forecast/reorder-recommendations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "forecast",
+                    "reorder-recommendations"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Reorder recommendations generated\",\n  \"data\": {\n    \"recommendations\": [\n      {\n        \"inventoryId\": \"60d21b4667d0d8992e610c88\",\n        \"name\": \"Product A\",\n        \"sku\": \"SKU001\",\n        \"currentStock\": 25,\n        \"recommendedReorderQuantity\": 75,\n        \"priority\": \"high\",\n        \"estimatedDaysUntilStockout\": 7\n      },\n      {\n        \"inventoryId\": \"60d21b4667d0d8992e610c8c\",\n        \"name\": \"Product B\",\n        \"sku\": \"SKU002\",\n        \"currentStock\": 40,\n        \"recommendedReorderQuantity\": 50,\n        \"priority\": \"medium\",\n        \"estimatedDaysUntilStockout\": 14\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Warehouse Optimization Suggestions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/warehouse-optimization",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forecast",
+                "warehouse-optimization"
+              ]
+            },
+            "description": "Get warehouse optimization suggestions"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/forecast/warehouse-optimization",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "forecast",
+                    "warehouse-optimization"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Warehouse optimization suggestions generated\",\n  \"data\": {\n    \"suggestions\": [\n      {\n        \"warehouseId\": \"60d21b4667d0d8992e610c89\",\n        \"name\": \"Main Warehouse\",\n        \"currentUtilization\": 65,\n        \"optimizationSuggestions\": [\n          {\n            \"type\": \"relocation\",\n            \"description\": \"Move slow-moving electronics to Warehouse B\",\n            \"potentialSpaceSaving\": \"15%\",\n            \"implementationComplexity\": \"medium\"\n          },\n          {\n            \"type\": \"consolidation\",\n            \"description\": \"Consolidate clothing items to free up shelf space\",\n            \"potentialSpaceSaving\": \"8%\",\n            \"implementationComplexity\": \"low\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Seasonal Trend Analysis",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/forecast/seasonal-trends",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forecast",
+                "seasonal-trends"
+              ]
+            },
+            "description": "Get seasonal trend analysis"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/forecast/seasonal-trends",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "forecast",
+                    "seasonal-trends"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Seasonal trend analysis generated\",\n  \"data\": {\n    \"trends\": [\n      {\n        \"season\": \"Summer\",\n        \"topCategories\": [\"Clothing\", \"Outdoor Equipment\"],\n        \"predictedGrowth\": 15,\n        \"recommendations\": \"Increase stock of summer clothing and outdoor items by 20%\"\n      },\n      {\n        \"season\": \"Winter\",\n        \"topCategories\": [\"Electronics\", \"Home Goods\"],\n        \"predictedGrowth\": 25,\n        \"recommendations\": \"Prepare holiday promotions for electronics and home goods\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

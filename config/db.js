@@ -5,11 +5,7 @@ require("dotenv").config();
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/windsurf",
-      {
-        // useNewUrlParser: true,
-        // useUnifiedTopology: true
-      }
+      process.env.MONGODB_URI || "mongodb://localhost:27017/windsurf"
     );
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);

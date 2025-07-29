@@ -8,6 +8,11 @@ const {
   markAllAsRead,
   deleteNotification,
   getUnreadCount,
+  getLowInventoryNotifications,
+  getLowInventoryCount,
+  markLowInventoryAsRead,
+  markAllLowInventoryAsRead,
+  getLowInventoryItems,
 } = require("../controllers/notification.controller");
 
 const router = express.Router();
@@ -37,11 +42,18 @@ router.route("/read-all").put(markAllAsRead);
 
 router.route("/unread-count").get(getUnreadCount);
 
+// Low inventory notification routes
+router.route("/low-inventory").get(getLowInventoryNotifications);
+router.route("/low-inventory/count").get(getLowInventoryCount);
+router.route("/low-inventory/read-all").put(markAllLowInventoryAsRead);
+router.route("/low-inventory/items").get(getLowInventoryItems);
+
 router
   .route("/:id")
   .get(getNotification)
   .delete(authorize("company_admin", "super_admin"), deleteNotification);
 
 router.route("/:id/read").put(markAsRead);
+router.route("/low-inventory/:id/read").put(markLowInventoryAsRead);
 
 module.exports = router;

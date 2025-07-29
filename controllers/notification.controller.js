@@ -1,6 +1,6 @@
-const Notification = require('../models/notification.model');
-const User = require('../models/user.model');
-const ErrorResponse = require('../utils/errorResponse');
+const Notification = require("../models/notification.model");
+const User = require("../models/user.model");
+const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Get all notifications for a user
 // @route   GET /api/notifications
@@ -10,13 +10,13 @@ exports.getUserNotifications = async (req, res, next) => {
     // Build query
     let query = {
       companyId: req.user.companyId,
-      'recipients.userId': req.user.id
+      "recipients.userId": req.user.id,
     };
 
     // Filter by read status if provided
     if (req.query.read !== undefined) {
-      const isRead = req.query.read === 'true';
-      query['recipients.$.read'] = isRead;
+      const isRead = req.query.read === "true";
+      query["recipients.$.read"] = isRead;
     }
 
     // Filter by priority if provided
@@ -48,14 +48,14 @@ exports.getUserNotifications = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -64,7 +64,7 @@ exports.getUserNotifications = async (req, res, next) => {
       count: notifications.length,
       pagination,
       total,
-      data: notifications
+      data: notifications,
     });
   } catch (err) {
     next(err);
@@ -108,14 +108,14 @@ exports.getAllNotifications = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -124,7 +124,7 @@ exports.getAllNotifications = async (req, res, next) => {
       count: notifications.length,
       pagination,
       total,
-      data: notifications
+      data: notifications,
     });
   } catch (err) {
     next(err);
@@ -139,18 +139,21 @@ exports.getNotification = async (req, res, next) => {
     const notification = await Notification.findOne({
       _id: req.params.id,
       companyId: req.user.companyId,
-      'recipients.userId': req.user.id
+      "recipients.userId": req.user.id,
     });
 
     if (!notification) {
       return next(
-        new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Notification not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
 
     res.status(200).json({
       success: true,
-      data: notification
+      data: notification,
     });
   } catch (err) {
     next(err);
@@ -168,10 +171,12 @@ exports.createNotification = async (req, res, next) => {
 
     // If recipients not provided, send to all users in company
     if (!req.body.recipients || req.body.recipients.length === 0) {
-      const users = await User.find({ companyId: req.user.companyId }).select('_id');
-      req.body.recipients = users.map(user => ({
+      const users = await User.find({ companyId: req.user.companyId }).select(
+        "_id"
+      );
+      req.body.recipients = users.map((user) => ({
         userId: user._id,
-        read: false
+        read: false,
       }));
     }
 
@@ -180,7 +185,7 @@ exports.createNotification = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      data: notification
+      data: notification,
     });
   } catch (err) {
     next(err);
@@ -195,18 +200,21 @@ exports.markAsRead = async (req, res, next) => {
     const notification = await Notification.findOne({
       _id: req.params.id,
       companyId: req.user.companyId,
-      'recipients.userId': req.user.id
+      "recipients.userId": req.user.id,
     });
 
     if (!notification) {
       return next(
-        new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Notification not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
 
     // Find recipient index
     const recipientIndex = notification.recipients.findIndex(
-      recipient => recipient.userId.toString() === req.user.id.toString()
+      (recipient) => recipient.userId.toString() === req.user.id.toString()
     );
 
     if (recipientIndex !== -1) {
@@ -218,7 +226,7 @@ exports.markAsRead = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: notification
+      data: notification,
     });
   } catch (err) {
     next(err);
@@ -233,22 +241,22 @@ exports.markAllAsRead = async (req, res, next) => {
     const result = await Notification.updateMany(
       {
         companyId: req.user.companyId,
-        'recipients.userId': req.user.id,
-        'recipients.read': false
+        "recipients.userId": req.user.id,
+        "recipients.read": false,
       },
       {
         $set: {
-          'recipients.$.read': true,
-          'recipients.$.readAt': Date.now()
-        }
+          "recipients.$.read": true,
+          "recipients.$.readAt": Date.now(),
+        },
       }
     );
 
     res.status(200).json({
       success: true,
       data: {
-        modifiedCount: result.modifiedCount
-      }
+        modifiedCount: result.modifiedCount,
+      },
     });
   } catch (err) {
     next(err);
@@ -262,12 +270,15 @@ exports.deleteNotification = async (req, res, next) => {
   try {
     const notification = await Notification.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!notification) {
       return next(
-        new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Notification not found with id of ${req.params.id}`,
+          404
+        )
       );
     }
 
@@ -275,7 +286,7 @@ exports.deleteNotification = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
   } catch (err) {
     next(err);
@@ -292,16 +303,207 @@ exports.getUnreadCount = async (req, res, next) => {
       recipients: {
         $elemMatch: {
           userId: req.user.id,
-          read: false
-        }
-      }
+          read: false,
+        },
+      },
     });
 
     res.status(200).json({
       success: true,
       data: {
-        count
+        count,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get low inventory notifications
+// @route   GET /api/notifications/low-inventory
+// @access  Private
+exports.getLowInventoryNotifications = async (req, res, next) => {
+  try {
+    // Build query for low inventory notifications
+    let query = {
+      companyId: req.user.companyId,
+      type: "Stock",
+      "recipients.userId": req.user.id,
+    };
+
+    // Filter by read status if provided
+    if (req.query.read !== undefined) {
+      const isRead = req.query.read === "true";
+      query["recipients.$.read"] = isRead;
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await Notification.countDocuments(query);
+
+    // Execute query
+    const notifications = await Notification.find(query)
+      .skip(startIndex)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .populate("relatedTo.id", "name sku quantity threshold location");
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit,
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: notifications.length,
+      pagination,
+      total,
+      data: notifications,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get low inventory notification count
+// @route   GET /api/notifications/low-inventory/count
+// @access  Private
+exports.getLowInventoryCount = async (req, res, next) => {
+  try {
+    const count = await Notification.countDocuments({
+      companyId: req.user.companyId,
+      type: "Stock",
+      recipients: {
+        $elemMatch: {
+          userId: req.user.id,
+          read: false,
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        count,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Mark low inventory notification as read
+// @route   PUT /api/notifications/low-inventory/:id/read
+// @access  Private
+exports.markLowInventoryAsRead = async (req, res, next) => {
+  try {
+    const notification = await Notification.findOne({
+      _id: req.params.id,
+      companyId: req.user.companyId,
+      type: "Stock",
+      "recipients.userId": req.user.id,
+    });
+
+    if (!notification) {
+      return next(
+        new ErrorResponse(
+          `Low inventory notification not found with id of ${req.params.id}`,
+          404
+        )
+      );
+    }
+
+    // Find recipient index
+    const recipientIndex = notification.recipients.findIndex(
+      (recipient) => recipient.userId.toString() === req.user.id.toString()
+    );
+
+    if (recipientIndex !== -1) {
+      // Update read status
+      notification.recipients[recipientIndex].read = true;
+      notification.recipients[recipientIndex].readAt = Date.now();
+      await notification.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      data: notification,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Mark all low inventory notifications as read
+// @route   PUT /api/notifications/low-inventory/read-all
+// @access  Private
+exports.markAllLowInventoryAsRead = async (req, res, next) => {
+  try {
+    const result = await Notification.updateMany(
+      {
+        companyId: req.user.companyId,
+        type: "Stock",
+        "recipients.userId": req.user.id,
+        "recipients.read": false,
+      },
+      {
+        $set: {
+          "recipients.$.read": true,
+          "recipients.$.readAt": Date.now(),
+        },
       }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        modifiedCount: result.modifiedCount,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get low inventory items (for dashboard)
+// @route   GET /api/notifications/low-inventory/items
+// @access  Private
+exports.getLowInventoryItems = async (req, res, next) => {
+  try {
+    const Inventory = require("../models/inventory.model");
+
+    // Get low inventory items
+    const lowInventoryItems = await Inventory.find({
+      companyId: req.user.companyId,
+      $expr: { $lte: ["$quantity", "$threshold"] },
+    })
+      .select("name sku quantity threshold location status lowStockAlertSent")
+      .populate("location.warehouseId", "name")
+      .populate("location.zoneId", "name")
+      .populate("location.shelfId", "name")
+      .populate("location.binId", "name")
+      .sort({ quantity: 1 })
+      .limit(parseInt(req.query.limit) || 20);
+
+    res.status(200).json({
+      success: true,
+      count: lowInventoryItems.length,
+      data: lowInventoryItems,
     });
   } catch (err) {
     next(err);

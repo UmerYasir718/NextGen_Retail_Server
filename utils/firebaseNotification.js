@@ -1,18 +1,38 @@
-const admin = require('firebase-admin');
-const User = require('../models/user.model');
+const admin = require("firebase-admin");
+const User = require("../models/user.model");
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
-  // In a production environment, you would use a service account key file
-  // For this implementation, we'll use environment variables
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL
-  });
+  try {
+    // Try to use service account file first
+    const serviceAccount = require("../nextgen-retail-c2f7a-firebase-adminsdk-fbsvc-ee49b4423d.json");
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`,
+    });
+    console.log("Firebase Admin SDK initialized with service account file");
+  } catch (error) {
+    // Fallback to environment variables
+    if (
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      process.env.FIREBASE_PRIVATE_KEY
+    ) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+      });
+      console.log("Firebase Admin SDK initialized with environment variables");
+    } else {
+      console.warn(
+        "Firebase Admin SDK not initialized - missing configuration"
+      );
+    }
+  }
 }
 
 /**
@@ -27,19 +47,19 @@ if (!admin.apps.length) {
 exports.sendToUser = async (userId, notification, data = {}) => {
   try {
     // Find user's FCM token
-    const user = await User.findById(userId).select('fcmToken');
-    
+    const user = await User.findById(userId).select("fcmToken");
+
     if (!user || !user.fcmToken) {
       console.log(`No FCM token found for user ${userId}`);
-      return { success: false, error: 'No FCM token found for user' };
+      return { success: false, error: "No FCM token found for user" };
     }
-    
+
     const message = {
       notification,
       data,
-      token: user.fcmToken
+      token: user.fcmToken,
     };
-    
+
     const response = await admin.messaging().send(message);
     console.log(`Successfully sent notification to user ${userId}:`, response);
     return { success: true, response };
@@ -61,34 +81,38 @@ exports.sendToUser = async (userId, notification, data = {}) => {
 exports.sendToUsers = async (userIds, notification, data = {}) => {
   try {
     // Find users' FCM tokens
-    const users = await User.find({ _id: { $in: userIds } }).select('_id fcmToken');
-    
+    const users = await User.find({ _id: { $in: userIds } }).select(
+      "_id fcmToken"
+    );
+
     // Filter out users without FCM tokens
     const tokens = users
-      .filter(user => user.fcmToken)
-      .map(user => user.fcmToken);
-    
+      .filter((user) => user.fcmToken)
+      .map((user) => user.fcmToken);
+
     if (tokens.length === 0) {
-      console.log('No FCM tokens found for the specified users');
-      return { success: false, error: 'No FCM tokens found' };
+      console.log("No FCM tokens found for the specified users");
+      return { success: false, error: "No FCM tokens found" };
     }
-    
+
     const message = {
       notification,
       data,
-      tokens
+      tokens,
     };
-    
+
     const response = await admin.messaging().sendMulticast(message);
-    console.log(`Successfully sent notifications to ${response.successCount} users`);
-    return { 
-      success: true, 
+    console.log(
+      `Successfully sent notifications to ${response.successCount} users`
+    );
+    return {
+      success: true,
       response,
       successCount: response.successCount,
-      failureCount: response.failureCount
+      failureCount: response.failureCount,
     };
   } catch (error) {
-    console.error('Error sending notifications to users:', error);
+    console.error("Error sending notifications to users:", error);
     return { success: false, error: error.message };
   }
 };
@@ -109,32 +133,43 @@ exports.sendToRoles = async (companyId, roles, notification, data = {}) => {
     const users = await User.find({
       companyId,
       role: { $in: roles },
-      fcmToken: { $exists: true, $ne: null }
-    }).select('_id fcmToken');
-    
-    const tokens = users.map(user => user.fcmToken);
-    
+      fcmToken: { $exists: true, $ne: null },
+    }).select("_id fcmToken");
+
+    const tokens = users.map((user) => user.fcmToken);
+
     if (tokens.length === 0) {
-      console.log(`No FCM tokens found for roles ${roles.join(', ')} in company ${companyId}`);
-      return { success: false, error: 'No FCM tokens found' };
+      console.log(
+        `No FCM tokens found for roles ${roles.join(
+          ", "
+        )} in company ${companyId}`
+      );
+      return { success: false, error: "No FCM tokens found" };
     }
-    
+
     const message = {
       notification,
       data,
-      tokens
+      tokens,
     };
-    
+
     const response = await admin.messaging().sendMulticast(message);
-    console.log(`Successfully sent notifications to ${response.successCount} users with roles ${roles.join(', ')}`);
-    return { 
-      success: true, 
+    console.log(
+      `Successfully sent notifications to ${
+        response.successCount
+      } users with roles ${roles.join(", ")}`
+    );
+    return {
+      success: true,
       response,
       successCount: response.successCount,
-      failureCount: response.failureCount
+      failureCount: response.failureCount,
     };
   } catch (error) {
-    console.error(`Error sending notifications to roles ${roles.join(', ')}:`, error);
+    console.error(
+      `Error sending notifications to roles ${roles.join(", ")}:`,
+      error
+    );
     return { success: false, error: error.message };
   }
 };
@@ -147,20 +182,25 @@ exports.sendToRoles = async (companyId, roles, notification, data = {}) => {
  */
 exports.sendLowStockAlert = async (item, companyId) => {
   const notification = {
-    title: 'Low Stock Alert',
-    body: `Item ${item.name} (SKU: ${item.sku}) is now below threshold. Current quantity: ${item.quantity}, Threshold: ${item.threshold}`
+    title: "Low Stock Alert",
+    body: `Item ${item.name} (SKU: ${item.sku}) is now below threshold. Current quantity: ${item.quantity}, Threshold: ${item.threshold}`,
   };
-  
+
   const data = {
-    type: 'low_stock_alert',
+    type: "low_stock_alert",
     itemId: item._id.toString(),
     itemName: item.name,
     itemSku: item.sku,
     quantity: item.quantity.toString(),
     threshold: item.threshold.toString(),
-    timestamp: Date.now().toString()
+    timestamp: Date.now().toString(),
   };
-  
+
   // Send to Admin and InventoryManager roles
-  return await exports.sendToRoles(companyId, ['Admin', 'InventoryManager'], notification, data);
+  return await exports.sendToRoles(
+    companyId,
+    ["Admin", "InventoryManager"],
+    notification,
+    data
+  );
 };

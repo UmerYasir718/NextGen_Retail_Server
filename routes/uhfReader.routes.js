@@ -1,32 +1,41 @@
-const express = require('express');
+const express = require("express");
 const {
   getUHFReaders,
   getUHFReader,
   createUHFReader,
   updateUHFReader,
   deleteUHFReader,
-  getUHFReaderByUhfId
-} = require('../controllers/uhfReader.controller');
+  getUHFReaderByUhfId,
+} = require("../controllers/uhfReader.controller");
 
 const router = express.Router();
 
 // Import middleware
-const { protect, authorize } = require('../middlewares/auth');
+const { protect, authorize } = require("../middlewares/auth");
 
 // Apply protection to all routes
 router.use(protect);
 
 // Routes
-router.route('/')
-  .get(authorize('Admin', 'Manager', 'Staff'), getUHFReaders)
-  .post(authorize('Admin', 'Manager'), createUHFReader);
+router
+  .route("/")
+  .get(
+    authorize("company_admin", "store_manager", "store_staff"),
+    getUHFReaders
+  )
+  .post(authorize("company_admin", "store_manager"), createUHFReader);
 
-router.route('/:id')
-  .get(authorize('Admin', 'Manager', 'Staff'), getUHFReader)
-  .put(authorize('Admin', 'Manager'), updateUHFReader)
-  .delete(authorize('Admin'), deleteUHFReader);
+router
+  .route("/:id")
+  .get(authorize("company_admin", "store_manager", "store_staff"), getUHFReader)
+  .put(authorize("company_admin", "store_manager"), updateUHFReader)
+  .delete(authorize("company_admin"), deleteUHFReader);
 
-router.route('/uhf/:uhfId')
-  .get(authorize('Admin', 'Manager', 'Staff'), getUHFReaderByUhfId);
+router
+  .route("/uhf/:uhfId")
+  .get(
+    authorize("company_admin", "store_manager", "store_staff"),
+    getUHFReaderByUhfId
+  );
 
 module.exports = router;

@@ -80,6 +80,9 @@ app.get("/", (req, res) => {
 // Socket.IO setup for UHF/RFID integration
 require("./sockets/uhf")(io);
 
+// Socket.IO setup for notifications
+require("./sockets/notification")(io);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

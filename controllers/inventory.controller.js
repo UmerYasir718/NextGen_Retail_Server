@@ -289,7 +289,6 @@ exports.updateInventoryStatus = async (req, res, next) => {
 // @access  Private
 exports.getInventoryItems = async (req, res, next) => {
   try {
-    console.log("DG SAB");
     // Build query
     let query = { companyId: req.user.companyId };
 
@@ -417,12 +416,14 @@ exports.createInventoryItem = async (req, res, next) => {
       const bin = await Bin.findById(item.location.binId);
       if (bin) {
         // Update bin's current items count
-        const inventoryItems = await Inventory.find({ "location.binId": bin._id });
+        const inventoryItems = await Inventory.find({
+          "location.binId": bin._id,
+        });
         let totalQuantity = 0;
-        inventoryItems.forEach(invItem => {
+        inventoryItems.forEach((invItem) => {
           totalQuantity += invItem.quantity || 0;
         });
-        
+
         // No need to save bin as we're just updating utilization in the GET APIs
       }
     }
@@ -479,13 +480,16 @@ exports.updateInventoryItem = async (req, res, next) => {
     );
 
     // Check if location has changed
-    const locationChanged = (
-      (originalItem.location?.binId?.toString() !== item.location?.binId?.toString()) ||
-      (originalItem.location?.shelfId?.toString() !== item.location?.shelfId?.toString()) ||
-      (originalItem.location?.zoneId?.toString() !== item.location?.zoneId?.toString()) ||
-      (originalItem.location?.warehouseId?.toString() !== item.location?.warehouseId?.toString()) ||
-      (originalItem.quantity !== item.quantity)
-    );
+    const locationChanged =
+      originalItem.location?.binId?.toString() !==
+        item.location?.binId?.toString() ||
+      originalItem.location?.shelfId?.toString() !==
+        item.location?.shelfId?.toString() ||
+      originalItem.location?.zoneId?.toString() !==
+        item.location?.zoneId?.toString() ||
+      originalItem.location?.warehouseId?.toString() !==
+        item.location?.warehouseId?.toString() ||
+      originalItem.quantity !== item.quantity;
 
     // If location or quantity changed, update utilization for both old and new locations
     if (locationChanged) {
@@ -498,20 +502,22 @@ exports.updateInventoryItem = async (req, res, next) => {
       if (item.location && item.location.binId) {
         // No need to update bin directly as utilization is calculated on-the-fly in GET APIs
       }
-      
+
       // Create audit log for location change
       try {
         // Get warehouse, zone, shelf, bin names for better readability in logs
-        const oldLocationDetails = await getLocationDetails(originalItem.location);
+        const oldLocationDetails = await getLocationDetails(
+          originalItem.location
+        );
         const newLocationDetails = await getLocationDetails(item.location);
-        
+
         // Create audit log entry
         await AuditLog.create({
           userId: req.user.id,
           userName: req.user.name,
           userRole: req.user.role,
-          action: 'Update',
-          module: 'Inventory',
+          action: "Update",
+          module: "Inventory",
           description: `Updated location for inventory item ${item.name} (SKU: ${item.sku})`,
           details: {
             inventoryId: item._id,
@@ -526,7 +532,7 @@ exports.updateInventoryItem = async (req, res, next) => {
               shelfName: oldLocationDetails.shelfName,
               binId: originalItem.location?.binId,
               binName: oldLocationDetails.binName,
-              quantity: originalItem.quantity
+              quantity: originalItem.quantity,
             },
             currentLocation: {
               warehouseId: item.location?.warehouseId,
@@ -537,20 +543,20 @@ exports.updateInventoryItem = async (req, res, next) => {
               shelfName: newLocationDetails.shelfName,
               binId: item.location?.binId,
               binName: newLocationDetails.binName,
-              quantity: item.quantity
+              quantity: item.quantity,
             },
             changedBy: {
               userId: req.user.id,
               userName: req.user.name,
               userRole: req.user.role,
-              timestamp: Date.now()
-            }
+              timestamp: Date.now(),
+            },
           },
           ipAddress: req.ip,
           companyId: req.user.companyId,
         });
       } catch (auditError) {
-        console.error('Error creating audit log:', auditError);
+        console.error("Error creating audit log:", auditError);
         // Don't fail the main operation if audit logging fails
       }
     }
@@ -585,7 +591,7 @@ exports.deleteInventoryItem = async (req, res, next) => {
 
     // Store location information before deletion to update utilization
     const locationInfo = item.location;
-    
+
     // Delete the inventory item
     await Inventory.findByIdAndDelete(item._id);
 
@@ -938,3 +944,309 @@ async function processCSV(uploadId) {
     console.error("CSV processing error:", error);
   }
 }
+
+// @desc    Get inventory records by file ID
+// @route   GET /api/inventory/file/:fileId
+// @access  Private
+exports.getInventoryByFileId = async (req, res, next) => {
+  try {
+    const { fileId } = req.params;
+    const { type = "inventory" } = req.query; // 'inventory' or 'temp'
+
+    // Validate fileId
+    if (!fileId) {
+      return next(new ErrorResponse("File ID is required", 400));
+    }
+
+    // Build query
+    let query = {
+      fileId: fileId,
+      companyId: req.user.companyId,
+    };
+
+    let records;
+    let total;
+
+    if (type === "temp") {
+      // Get temp inventory records
+      total = await InventoryTemp.countDocuments(query);
+      records = await InventoryTemp.find(query)
+        .sort({ rowNumber: 1 })
+        .populate("fileId", "name originalName fileType status");
+    } else {
+      // Get regular inventory records
+      total = await Inventory.countDocuments(query);
+      records = await Inventory.find(query)
+        .sort({ createdAt: -1 })
+        .populate("fileId", "name originalName fileType status")
+        .populate("location.warehouseId", "name")
+        .populate("location.zoneId", "name")
+        .populate("location.shelfId", "name")
+        .populate("location.binId", "name");
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedRecords = records.slice(startIndex, endIndex);
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit,
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRecords.length,
+      total,
+      pagination,
+      type,
+      fileId,
+      data: paginatedRecords,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get temp inventory records by file ID
+// @route   GET /api/inventory/temp/file/:fileId
+// @access  Private
+exports.getTempInventoryByFileId = async (req, res, next) => {
+  try {
+    const { fileId } = req.params;
+
+    // Validate fileId
+    if (!fileId) {
+      return next(new ErrorResponse("File ID is required", 400));
+    }
+
+    // Build query
+    let query = {
+      fileId: fileId,
+      companyId: req.user.companyId,
+    };
+
+    // Get temp inventory records
+    const total = await InventoryTemp.countDocuments(query);
+    const records = await InventoryTemp.find(query)
+      .sort({ rowNumber: 1 })
+      .populate("fileId", "name originalName fileType status");
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedRecords = records.slice(startIndex, endIndex);
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit,
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: paginatedRecords.length,
+      total,
+      pagination,
+      fileId,
+      data: paginatedRecords,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Process temp inventory records and move to purchase inventory
+// @route   POST /api/inventory/process-temp
+// @access  Private
+exports.processTempInventory = async (req, res, next) => {
+  try {
+    const { fileId, uuids, status } = req.body;
+
+    // Validate required fields
+    if (!fileId || !uuids || !Array.isArray(uuids) || !status) {
+      return next(
+        new ErrorResponse("File ID, UUIDs array, and status are required", 400)
+      );
+    }
+
+    // Validate status
+    if (!["approved", "rejected"].includes(status.toLowerCase())) {
+      return next(
+        new ErrorResponse("Status must be either 'approved' or 'rejected'", 400)
+      );
+    }
+
+    // Find temp inventory records by UUIDs and fileId
+    const tempRecords = await InventoryTemp.find({
+      _id: { $in: uuids },
+      fileId: fileId,
+      companyId: req.user.companyId,
+    });
+
+    if (tempRecords.length === 0) {
+      return next(
+        new ErrorResponse(
+          "No temp inventory records found with the provided UUIDs and file ID",
+          404
+        )
+      );
+    }
+
+    const processedRecords = [];
+    const errors = [];
+
+    // Process each temp record
+    for (const tempRecord of tempRecords) {
+      try {
+        // Mark as processed regardless of status
+        tempRecord.isProcessed = true;
+        tempRecord.processedAt = Date.now();
+        tempRecord.processedBy = req.user.id;
+        tempRecord.processStatus = status.toLowerCase();
+        await tempRecord.save();
+
+        if (status.toLowerCase() === "approved") {
+          // Check if item with this SKU already exists in purchase inventory
+          let existingItem = await Inventory.findOne({
+            sku: tempRecord.sku,
+            companyId: req.user.companyId,
+          });
+
+          if (existingItem) {
+            // Update existing item quantity
+            existingItem.quantity += tempRecord.quantity;
+            existingItem.updatedBy = req.user.id;
+            existingItem.updatedAt = Date.now();
+            await existingItem.save();
+
+            processedRecords.push({
+              uuid: tempRecord._id,
+              action: "updated",
+              sku: tempRecord.sku,
+              quantity: tempRecord.quantity,
+              message: "Existing inventory item updated",
+            });
+          } else {
+            // Create new inventory item
+            const newInventoryItem = await Inventory.create({
+              name: tempRecord.name,
+              sku: tempRecord.sku,
+              tagId: tempRecord.tagId,
+              description: tempRecord.description,
+              category: tempRecord.category,
+              quantity: tempRecord.quantity,
+              threshold: tempRecord.threshold,
+              location: tempRecord.location,
+              price: tempRecord.price,
+              supplier: tempRecord.supplier,
+              companyId: req.user.companyId,
+              fileId: fileId,
+              createdBy: req.user.id,
+              inventoryStatus: "purchase", // Set as purchase inventory
+            });
+
+            processedRecords.push({
+              uuid: tempRecord._id,
+              action: "created",
+              sku: tempRecord.sku,
+              quantity: tempRecord.quantity,
+              newInventoryId: newInventoryItem._id,
+              message: "New inventory item created",
+            });
+          }
+        } else {
+          // Status is rejected - only mark as processed
+          processedRecords.push({
+            uuid: tempRecord._id,
+            action: "rejected",
+            sku: tempRecord.sku,
+            message: "Record rejected and marked as processed",
+          });
+        }
+      } catch (error) {
+        errors.push({
+          uuid: tempRecord._id,
+          sku: tempRecord.sku,
+          error: error.message,
+        });
+      }
+    }
+
+    // Create audit log for the processing
+    try {
+      await AuditLog.create({
+        userId: req.user.id,
+        userName: req.user.name,
+        userRole: req.user.role,
+        action: "Process",
+        module: "Inventory",
+        description: `Processed ${tempRecords.length} temp inventory records from file ${fileId}`,
+        details: {
+          fileId: fileId,
+          status: status.toLowerCase(),
+          totalRecords: tempRecords.length,
+          processedRecords: processedRecords.length,
+          errors: errors.length,
+          processedBy: {
+            userId: req.user.id,
+            userName: req.user.name,
+            userRole: req.user.role,
+            timestamp: Date.now(),
+          },
+        },
+        ipAddress: req.ip,
+        companyId: req.user.companyId,
+      });
+    } catch (auditError) {
+      console.error("Error creating audit log:", auditError);
+      // Don't fail the main operation if audit logging fails
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully processed ${processedRecords.length} records`,
+      data: {
+        fileId: fileId,
+        status: status.toLowerCase(),
+        totalRecords: tempRecords.length,
+        processedRecords: processedRecords.length,
+        errors: errors.length,
+        results: processedRecords,
+        errors: errors,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};

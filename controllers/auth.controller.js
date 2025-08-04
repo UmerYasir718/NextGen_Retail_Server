@@ -55,10 +55,9 @@ exports.register = async (req, res, next) => {
     const verificationToken = user.getVerificationToken();
     await user.save({ validateBeforeSave: false });
 
-    // Create verification URL
-    const verificationUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/api/auth/verify-email/${verificationToken}`;
+    // Create verification URL with frontend URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     try {
       await sendEnhancedEmail({
@@ -160,13 +159,13 @@ exports.login = async (req, res, next) => {
     }
 
     // Send token response with plan expiration flag
-    sendTokenResponse(user, 200, res, isPlanExpired);
+    await sendTokenResponse(user, 200, res, isPlanExpired);
   } catch (err) {
     next(err);
   }
 };
 
-// @desc    Verify email
+// @desc    Verify email (Backend endpoint for direct verification)
 // @route   GET /api/auth/verify-email/:token
 // @access  Public
 exports.verifyEmail = async (req, res, next) => {
@@ -195,6 +194,52 @@ exports.verifyEmail = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Email verified successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Verify email (Frontend endpoint for token verification)
+// @route   POST /api/auth/verify-email-token
+// @access  Public
+exports.verifyEmailToken = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return next(new ErrorResponse("Token is required", 400));
+    }
+
+    // Get hashed token
+    const verificationToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      verificationToken,
+      verificationExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ErrorResponse("Invalid or expired token", 400));
+    }
+
+    // Set user as verified
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpire = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      data: {
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+      },
     });
   } catch (err) {
     next(err);
@@ -233,10 +278,9 @@ exports.forgotPassword = async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false });
 
-    // Create reset url
-    const resetUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/api/auth/reset-password/${resetToken}`;
+    // Create reset url with frontend URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     try {
       await sendEnhancedEmail({
@@ -301,6 +345,44 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
+// @desc    Reset password with token in body (for frontend integration)
+// @route   POST /api/auth/reset-password
+// @access  Public
+exports.resetPasswordWithToken = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return next(new ErrorResponse("Token and password are required", 400));
+    }
+
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ErrorResponse("Invalid or expired token", 400));
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Update password
 // @route   PUT /api/auth/update-password
 // @access  Private
@@ -317,6 +399,94 @@ exports.updatePassword = async (req, res, next) => {
     await user.save();
 
     sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Change password (alias for update password)
+// @route   PUT /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("+password");
+
+    // Check current password
+    if (!(await user.matchPassword(req.body.currentPassword))) {
+      return next(new ErrorResponse("Current password is incorrect", 401));
+    }
+
+    user.password = req.body.newPassword;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Resend verification email
+// @route   POST /api/auth/resend-verification
+// @access  Public
+exports.resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new ErrorResponse("Email is required", 400));
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new ErrorResponse("User not found", 404));
+    }
+
+    if (user.isVerified) {
+      return next(new ErrorResponse("Email is already verified", 400));
+    }
+
+    // Generate new verification token
+    const verificationToken = user.getVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Create verification URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+    try {
+      await sendEnhancedEmail({
+        email: user.email,
+        subject: "Email Verification - Resend",
+        templateName: "verification",
+        templateData: {
+          name: user.name,
+          verificationUrl,
+        },
+        plainText: `Hello ${user.name},
+
+You requested a new verification email. Please click the link below to verify your email address:
+
+${verificationUrl}
+
+If you did not request this email, please ignore it.
+
+Best regards,
+The Windsurf Team`,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Verification email sent successfully",
+      });
+    } catch (err) {
+      console.error("Email sending error:", err);
+      user.verificationToken = undefined;
+      user.verificationExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return next(new ErrorResponse("Email could not be sent", 500));
+    }
   } catch (err) {
     next(err);
   }
@@ -369,7 +539,7 @@ exports.superAdminLogin = async (req, res, next) => {
       });
     }
 
-    sendTokenResponse(superAdmin, 200, res);
+    await sendTokenResponse(superAdmin, 200, res);
   } catch (err) {
     next(err);
   }
@@ -417,9 +587,45 @@ exports.selectCompany = async (req, res, next) => {
 };
 
 // Helper function to get token from model, create cookie and send response
-const sendTokenResponse = (user, statusCode, res, isPlanExpired = false) => {
+const sendTokenResponse = async (
+  user,
+  statusCode,
+  res,
+  isPlanExpired = false
+) => {
   // Create token
   const token = user.getSignedJwtToken();
+
+  // Get plan information if user has a company
+  let planInfo = null;
+  if (user.companyId) {
+    try {
+      const planManager = require("../utils/planManager");
+      const planUsage = await planManager.getPlanUsage(user.companyId);
+      const planExpiration = await planManager.checkPlanExpiration(
+        user.companyId
+      );
+      const company = await Company.findById(user.companyId).populate("planId");
+
+      planInfo = {
+        id: company?.planId?._id,
+        name: company?.planId?.name || "Free Trial",
+        isTrialPeriod: company?.isTrialPeriod || false,
+        isExpired: planExpiration.isExpired,
+        daysRemaining: planExpiration.daysRemaining,
+        limits: company?.planId?.limits || {
+          warehouseLimit: 1,
+          userLimit: 3,
+          inventoryLimit: 100,
+          includesAIForecasting: false,
+          includesAdvancedReporting: false,
+        },
+        usage: planUsage.usage,
+      };
+    } catch (error) {
+      console.error("Error getting plan info:", error);
+    }
+  }
 
   res.status(statusCode).json({
     success: true,
@@ -431,7 +637,7 @@ const sendTokenResponse = (user, statusCode, res, isPlanExpired = false) => {
       email: user.email,
       role: user.role,
       companyId: user.companyId,
-      planId: user.planId,
     },
+    plan: planInfo,
   });
 };

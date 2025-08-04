@@ -5,6 +5,8 @@ const {
   updateCompany,
   deleteCompany,
   getDashboardStats,
+  getCompanyPlan,
+  editCompanyDetails,
 } = require("../controllers/company.controller");
 
 const router = express.Router();
@@ -34,5 +36,15 @@ router
 router
   .route("/dashboard/stats")
   .get(authorize("super_admin", "company_admin"), getDashboardStats);
+
+// Company plan details route
+router
+  .route("/plan")
+  .get(authorize("super_admin", "company_admin"), getCompanyPlan);
+
+// Edit company details route (without company name)
+router
+  .route("/edit-details")
+  .put(authorize("company_admin"), editCompanyDetails);
 
 module.exports = router;

@@ -3,6 +3,11 @@ const Shelf = require("../models/shelf.model");
 const Inventory = require("../models/inventory.model");
 const Warehouse = require("../models/warehouse.model");
 const ErrorResponse = require("../utils/errorResponse");
+const {
+  logEntityCreation,
+  logEntityUpdate,
+  logEntityDeletion,
+} = require("../utils/auditLogger");
 
 // @desc    Get all zones
 // @route   GET /api/zones
@@ -50,23 +55,31 @@ exports.getZones = async (req, res, next) => {
         // Since zones don't have a capacity field, we'll use a different approach
         // We'll calculate utilization as the percentage of shelves that contain inventory
         let utilizationPercentage = 0;
-        
+
         if (shelfCount > 0) {
           // Count shelves that have inventory items
-          const shelvesWithInventory = await Shelf.distinct('_id', { 
+          const shelvesWithInventory = await Shelf.distinct("_id", {
             zoneId: zone._id,
-            _id: { $in: await Inventory.distinct('location.shelfId', { "location.zoneId": zone._id }) }
+            _id: {
+              $in: await Inventory.distinct("location.shelfId", {
+                "location.zoneId": zone._id,
+              }),
+            },
           });
-          
-          utilizationPercentage = (shelvesWithInventory.length / shelfCount) * 100;
+
+          utilizationPercentage =
+            (shelvesWithInventory.length / shelfCount) * 100;
         }
-        
+
         // Format to 2 decimal places and ensure it doesn't exceed 100%
-        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+        utilizationPercentage = Math.min(
+          parseFloat(utilizationPercentage.toFixed(2)),
+          100
+        );
 
         // Convert the Mongoose document to a plain JavaScript object
         const zoneObj = zone.toObject();
-        
+
         // Add utilization data
         return {
           ...zoneObj,
@@ -119,23 +132,30 @@ exports.getZone = async (req, res, next) => {
     // Since zones don't have a capacity field, we'll use a different approach
     // We'll calculate utilization as the percentage of shelves that contain inventory
     let utilizationPercentage = 0;
-    
+
     if (shelfCount > 0) {
       // Count shelves that have inventory items
-      const shelvesWithInventory = await Shelf.distinct('_id', { 
+      const shelvesWithInventory = await Shelf.distinct("_id", {
         zoneId: zone._id,
-        _id: { $in: await Inventory.distinct('location.shelfId', { "location.zoneId": zone._id }) }
+        _id: {
+          $in: await Inventory.distinct("location.shelfId", {
+            "location.zoneId": zone._id,
+          }),
+        },
       });
-      
+
       utilizationPercentage = (shelvesWithInventory.length / shelfCount) * 100;
     }
-    
+
     // Format to 2 decimal places and ensure it doesn't exceed 100%
-    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+    utilizationPercentage = Math.min(
+      parseFloat(utilizationPercentage.toFixed(2)),
+      100
+    );
 
     // Convert the Mongoose document to a plain JavaScript object
     const zoneObj = zone.toObject();
-    
+
     // Add utilization data
     const zoneWithUtilization = {
       ...zoneObj,
@@ -197,6 +217,9 @@ exports.createZone = async (req, res, next) => {
     // Create zone
     const zone = await Zone.create(req.body);
 
+    // Create audit log
+    await logEntityCreation(req, zone, "Zone", "zone");
+
     res.status(201).json({
       success: true,
       data: zone,
@@ -215,6 +238,18 @@ exports.updateZone = async (req, res, next) => {
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
 
+    // Get original zone for audit log
+    const originalZone = await Zone.findOne({
+      _id: req.params.id,
+      companyId: req.user.companyId,
+    });
+
+    if (!originalZone) {
+      return next(
+        new ErrorResponse(`Zone not found with id of ${req.params.id}`, 404)
+      );
+    }
+
     // Find and update zone
     const zone = await Zone.findOneAndUpdate(
       {
@@ -228,11 +263,8 @@ exports.updateZone = async (req, res, next) => {
       }
     );
 
-    if (!zone) {
-      return next(
-        new ErrorResponse(`Zone not found with id of ${req.params.id}`, 404)
-      );
-    }
+    // Create audit log
+    await logEntityUpdate(req, originalZone, zone, "Zone", "zone");
 
     res.status(200).json({
       success: true,
@@ -285,6 +317,9 @@ exports.deleteZone = async (req, res, next) => {
       );
     }
 
+    // Create audit log before deletion
+    await logEntityDeletion(req, zone, "Zone", "zone");
+
     await Zone.findByIdAndDelete(zone._id);
 
     res.status(200).json({
@@ -317,7 +352,7 @@ exports.getSimpleZones = async (req, res, next) => {
 
     // Execute query and select only id and name
     const zones = await Zone.find(query)
-      .select('_id name warehouseId')
+      .select("_id name warehouseId")
       .sort({ name: 1 });
 
     res.status(200).json({

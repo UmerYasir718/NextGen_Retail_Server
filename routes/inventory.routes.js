@@ -13,6 +13,9 @@ const {
   getSalePendingInventory,
   getSaleInventory,
   updateInventoryStatus,
+  getInventoryByFileId,
+  getTempInventoryByFileId,
+  processTempInventory,
 } = require("../controllers/inventory.controller");
 
 const router = express.Router();
@@ -135,6 +138,41 @@ router
   .put(
     authorize("company_admin", "super_admin", "store_manager"),
     updateInventoryStatus
+  );
+
+// File-based inventory routes
+router
+  .route("/file/:fileId")
+  .get(
+    authorize(
+      "company_admin",
+      "super_admin",
+      "store_manager",
+      "analyst",
+      "auditor"
+    ),
+    getInventoryByFileId
+  );
+
+router
+  .route("/temp/file/:fileId")
+  .get(
+    authorize(
+      "company_admin",
+      "super_admin",
+      "store_manager",
+      "analyst",
+      "auditor"
+    ),
+    getTempInventoryByFileId
+  );
+
+// Process temp inventory route
+router
+  .route("/process-temp")
+  .post(
+    authorize("company_admin", "super_admin", "store_manager"),
+    processTempInventory
   );
 
 module.exports = router;

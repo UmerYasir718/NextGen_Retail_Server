@@ -143,6 +143,57 @@ exports.deleteCompany = async (req, res, next) => {
   }
 };
 
+// @desc    Get company plan details
+// @route   GET /api/companies/plan
+// @access  Private/Admin
+exports.getCompanyPlan = async (req, res, next) => {
+  try {
+    const companyId = req.user.companyId;
+    const planManager = require("../utils/planManager");
+
+    // Get comprehensive plan information
+    const planUsage = await planManager.getPlanUsage(companyId);
+    const planExpiration = await planManager.checkPlanExpiration(companyId);
+    const company = await Company.findById(companyId).populate("planId");
+
+    if (!company) {
+      return next(new ErrorResponse("Company not found", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        plan: {
+          id: company.planId?._id,
+          name: company.planId?.name || "Free Trial",
+          description: company.planId?.description,
+          price: company.planId?.price || 0,
+          duration: company.planId?.duration || 1,
+          isTrialPeriod: company.isTrialPeriod,
+          planStartDate: company.planStartDate,
+          planEndDate: company.planEndDate,
+          trialEndDate: company.trialEndDate,
+          isExpired: planExpiration.isExpired,
+          daysRemaining: planExpiration.daysRemaining,
+          limits: company.planId?.limits || {
+            warehouseLimit: 1,
+            userLimit: 3,
+            inventoryLimit: 100,
+            includesAIForecasting: false,
+            includesAdvancedReporting: false,
+          },
+          features: company.planId?.features || ["Basic inventory management"],
+        },
+        usage: planUsage.usage,
+        canUpgrade: !company.isTrialPeriod && planExpiration.daysRemaining > 0,
+        upgradeUrl: "/plans",
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Get company dashboard stats
 // @route   GET /api/companies/dashboard
 // @access  Private/Admin
@@ -151,28 +202,21 @@ exports.getDashboardStats = async (req, res, next) => {
     // Get company ID from authenticated user
     const companyId = req.user.companyId;
 
-    // Get company details
-    const company = await Company.findById(companyId);
+    // Get company details with plan information
+    const company = await Company.findById(companyId).populate("planId");
 
     if (!company) {
       return next(new ErrorResponse("Company not found", 404));
     }
 
-    // Calculate days remaining in trial or plan
-    let daysRemaining = 0;
-    let planStatus = "";
+    // Get plan usage statistics
+    const planManager = require("../utils/planManager");
+    const planUsage = await planManager.getPlanUsage(companyId);
+    const planExpiration = await planManager.checkPlanExpiration(companyId);
 
-    if (company.isTrialPeriod) {
-      const trialEnd = new Date(company.trialEndDate);
-      const today = new Date();
-      daysRemaining = Math.ceil((trialEnd - today) / (1000 * 60 * 60 * 24));
-      planStatus = "Trial";
-    } else if (company.planEndDate) {
-      const planEnd = new Date(company.planEndDate);
-      const today = new Date();
-      daysRemaining = Math.ceil((planEnd - today) / (1000 * 60 * 60 * 24));
-      planStatus = "Paid Plan";
-    }
+    // Calculate days remaining in trial or plan
+    let daysRemaining = planExpiration.daysRemaining;
+    let planStatus = company.isTrialPeriod ? "Trial" : "Paid Plan";
 
     // Get user count
     const userCount = await User.countDocuments({ companyId });
@@ -191,7 +235,7 @@ exports.getDashboardStats = async (req, res, next) => {
     // Get low stock items for table
     const lowStockItems = await exports.getLowStockItems(companyId);
 
-    // Return dashboard stats
+    // Return dashboard stats with comprehensive plan information
     res.status(200).json({
       success: true,
       data: {
@@ -200,6 +244,27 @@ exports.getDashboardStats = async (req, res, next) => {
         daysRemaining,
         userCount,
         isActive: company.isActive,
+        plan: {
+          id: company.planId?._id,
+          name: company.planId?.name || "Free Trial",
+          description: company.planId?.description,
+          price: company.planId?.price || 0,
+          duration: company.planId?.duration || 1,
+          isTrialPeriod: company.isTrialPeriod,
+          planStartDate: company.planStartDate,
+          planEndDate: company.planEndDate,
+          trialEndDate: company.trialEndDate,
+          isExpired: planExpiration.isExpired,
+          limits: company.planId?.limits || {
+            warehouseLimit: 1,
+            userLimit: 3,
+            inventoryLimit: 100,
+            includesAIForecasting: false,
+            includesAdvancedReporting: false,
+          },
+          features: company.planId?.features || ["Basic inventory management"],
+        },
+        usage: planUsage.usage,
         salesData,
         inventoryData,
         revenueData,
@@ -528,5 +593,63 @@ exports.getLowStockItems = async (companyId) => {
         threshold: 10,
       },
     ];
+  }
+};
+
+// @desc    Edit company details (without company name)
+// @route   PUT /api/companies/edit-details
+// @access  Private/Company Admin
+exports.editCompanyDetails = async (req, res, next) => {
+  try {
+    // Only company admin can edit company details
+    if (req.user.role !== "company_admin") {
+      return next(
+        new ErrorResponse("Only company admin can edit company details", 403)
+      );
+    }
+
+    // Remove company name from request body to prevent changing it
+    const { name, ...updateData } = req.body;
+
+    // Additional restricted fields that cannot be changed
+    const restrictedFields = [
+      "planId",
+      "planStartDate",
+      "planEndDate",
+      "isTrialPeriod",
+      "trialEndDate",
+      "stripeCustomerId",
+      "isActive",
+      "createdBy",
+      "createdAt",
+    ];
+
+    restrictedFields.forEach((field) => {
+      if (updateData[field] !== undefined) {
+        delete updateData[field];
+      }
+    });
+
+    // Update company details
+    const company = await Company.findByIdAndUpdate(
+      req.user.companyId,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!company) {
+      return next(new ErrorResponse("Company not found", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Company details updated successfully",
+      data: company,
+    });
+  } catch (err) {
+    next(err);
   }
 };

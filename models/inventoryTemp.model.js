@@ -1,103 +1,126 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const InventoryTempSchema = new mongoose.Schema({
   uploadId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'InventoryUpload',
-    required: true
+    ref: "InventoryUpload",
+    required: true,
   },
   rowNumber: {
-    type: Number
+    type: Number,
   },
   name: {
     type: String,
-    required: [true, 'Please add item name'],
-    trim: true
+    required: [true, "Please add item name"],
+    trim: true,
   },
   sku: {
     type: String,
-    required: [true, 'Please add SKU'],
-    trim: true
+    required: [true, "Please add SKU"],
+    trim: true,
   },
   tagId: {
     type: String,
-    trim: true
+    trim: true,
   },
   description: {
-    type: String
+    type: String,
   },
   category: {
     type: String,
-    required: [true, 'Please add a category']
+    required: [true, "Please add a category"],
   },
   quantity: {
     type: Number,
-    required: [true, 'Please add quantity'],
-    default: 0
+    required: [true, "Please add quantity"],
+    default: 0,
   },
   threshold: {
     type: Number,
-    default: 5
+    default: 5,
   },
   location: {
     warehouseId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Warehouse'
+      ref: "Warehouse",
     },
     warehouseName: String,
     zoneId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Zone'
+      ref: "Zone",
     },
     zoneName: String,
     shelfId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Shelf'
+      ref: "Shelf",
     },
     shelfName: String,
     binId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Bin'
+      ref: "Bin",
     },
-    binName: String
+    binName: String,
   },
   price: {
     cost: {
       type: Number,
-      default: 0
+      default: 0,
     },
     retail: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   supplier: {
     name: String,
-    contactInfo: String
+    contactInfo: String,
   },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Company',
-    required: true
+    ref: "Company",
+    required: true,
+  },
+  fileId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "File",
   },
   status: {
     type: String,
-    enum: ['Pending', 'Valid', 'Invalid'],
-    default: 'Pending'
+    enum: ["Pending", "Valid", "Invalid"],
+    default: "Pending",
   },
-  errors: [{
-    field: String,
-    message: String
-  }],
+  errors: [
+    {
+      field: String,
+      message: String,
+    },
+  ],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
+  isProcessed: {
+    type: Boolean,
+    default: false,
+  },
+  processedAt: {
+    type: Date,
+  },
+  processedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  processStatus: {
+    type: String,
+    enum: ["approved", "rejected", "pending"],
+    default: "pending",
+  },
 });
 
 // Create indexes
 InventoryTempSchema.index({ uploadId: 1 });
 InventoryTempSchema.index({ companyId: 1 });
 InventoryTempSchema.index({ status: 1 });
+InventoryTempSchema.index({ fileId: 1 });
 
-module.exports = mongoose.model('InventoryTemp', InventoryTempSchema);
+module.exports = mongoose.model("InventoryTemp", InventoryTempSchema);

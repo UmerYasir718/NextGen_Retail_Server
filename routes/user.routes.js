@@ -5,6 +5,7 @@ const {
   createUser,
   updateUser,
   deleteUser,
+  editUserDetails,
 } = require("../controllers/user.controller");
 
 const router = express.Router();
@@ -31,5 +32,8 @@ router
   .get(authorize("company_admin", "super_admin"), getUser)
   .put(authorize("company_admin", "super_admin"), updateUser)
   .delete(authorize("company_admin", "super_admin"), deleteUser);
+
+// Edit user details route (without email permission)
+router.route("/edit-details").put(editUserDetails);
 
 module.exports = router;

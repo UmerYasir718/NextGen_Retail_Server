@@ -1,9 +1,14 @@
-const Bin = require('../models/bin.model');
-const Shelf = require('../models/shelf.model');
-const Zone = require('../models/zone.model');
-const Warehouse = require('../models/warehouse.model');
-const Inventory = require('../models/inventory.model');
-const ErrorResponse = require('../utils/errorResponse');
+const Bin = require("../models/bin.model");
+const Shelf = require("../models/shelf.model");
+const Zone = require("../models/zone.model");
+const Warehouse = require("../models/warehouse.model");
+const Inventory = require("../models/inventory.model");
+const ErrorResponse = require("../utils/errorResponse");
+const {
+  logEntityCreation,
+  logEntityUpdate,
+  logEntityDeletion,
+} = require("../utils/auditLogger");
 
 // @desc    Get all bins in a shelf
 // @route   GET /api/bins
@@ -18,12 +23,15 @@ exports.getBins = async (req, res, next) => {
       // Check if shelf exists and belongs to company
       const shelf = await Shelf.findOne({
         _id: req.params.shelfId,
-        companyId: req.user.companyId
+        companyId: req.user.companyId,
       });
 
       if (!shelf) {
         return next(
-          new ErrorResponse(`Shelf not found with id of ${req.params.shelfId}`, 404)
+          new ErrorResponse(
+            `Shelf not found with id of ${req.params.shelfId}`,
+            404
+          )
         );
       }
 
@@ -42,12 +50,12 @@ exports.getBins = async (req, res, next) => {
 
     // Filter by active status if provided
     if (req.query.isActive !== undefined) {
-      query.isActive = req.query.isActive === 'true';
+      query.isActive = req.query.isActive === "true";
     }
 
     // Search by name
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.name = searchRegex;
     }
 
@@ -63,22 +71,28 @@ exports.getBins = async (req, res, next) => {
         });
 
         // Calculate total quantity of items in the bin
-        const inventoryItems = await Inventory.find({ "location.binId": bin._id });
+        const inventoryItems = await Inventory.find({
+          "location.binId": bin._id,
+        });
         let totalQuantity = 0;
-        inventoryItems.forEach(item => {
+        inventoryItems.forEach((item) => {
           totalQuantity += item.quantity || 0;
         });
 
         // Calculate utilization percentage
         let capacityValue = bin.capacity || 0;
-        let utilizationPercentage = capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
-        
+        let utilizationPercentage =
+          capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
+
         // Format to 2 decimal places and ensure it doesn't exceed 100%
-        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+        utilizationPercentage = Math.min(
+          parseFloat(utilizationPercentage.toFixed(2)),
+          100
+        );
 
         // Convert the Mongoose document to a plain JavaScript object
         const binObj = bin.toObject();
-        
+
         // Add utilization data
         return {
           ...binObj,
@@ -108,9 +122,9 @@ exports.getBins = async (req, res, next) => {
 // @access  Private
 exports.getBin = async (req, res, next) => {
   try {
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If shelfId is provided in params, add to query
@@ -134,20 +148,24 @@ exports.getBin = async (req, res, next) => {
     // Calculate total quantity of items in the bin
     const inventoryItems = await Inventory.find({ "location.binId": bin._id });
     let totalQuantity = 0;
-    inventoryItems.forEach(item => {
+    inventoryItems.forEach((item) => {
       totalQuantity += item.quantity || 0;
     });
 
     // Calculate utilization percentage
     let capacityValue = bin.capacity || 0;
-    let utilizationPercentage = capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
-    
+    let utilizationPercentage =
+      capacityValue > 0 ? (totalQuantity / capacityValue) * 100 : 0;
+
     // Format to 2 decimal places and ensure it doesn't exceed 100%
-    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+    utilizationPercentage = Math.min(
+      parseFloat(utilizationPercentage.toFixed(2)),
+      100
+    );
 
     // Convert the Mongoose document to a plain JavaScript object
     const binObj = bin.toObject();
-    
+
     // Add utilization data
     const binWithUtilization = {
       ...binObj,
@@ -161,7 +179,7 @@ exports.getBin = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: binWithUtilization
+      data: binWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -186,7 +204,7 @@ exports.createBin = async (req, res, next) => {
     // Check if shelf exists and belongs to company
     const shelf = await Shelf.findOne({
       _id: req.body.shelfId,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!shelf) {
@@ -202,21 +220,27 @@ exports.createBin = async (req, res, next) => {
     // Check if bin with this name already exists in the shelf
     const existingBin = await Bin.findOne({
       name: req.body.name,
-      shelfId: req.body.shelfId
+      shelfId: req.body.shelfId,
     });
 
     if (existingBin) {
       return next(
-        new ErrorResponse(`Bin with name ${req.body.name} already exists in this shelf`, 400)
+        new ErrorResponse(
+          `Bin with name ${req.body.name} already exists in this shelf`,
+          400
+        )
       );
     }
 
     // Create bin
     const bin = await Bin.create(req.body);
 
+    // Create audit log
+    await logEntityCreation(req, bin, "Bin", "bin");
+
     res.status(201).json({
       success: true,
-      data: bin
+      data: bin,
     });
   } catch (err) {
     next(err);
@@ -233,9 +257,9 @@ exports.updateBin = async (req, res, next) => {
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
 
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If shelfId is provided in params, add to query
@@ -243,25 +267,27 @@ exports.updateBin = async (req, res, next) => {
       query.shelfId = req.params.shelfId;
     }
 
-    // Find and update bin
-    const bin = await Bin.findOneAndUpdate(
-      query,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
+    // Get original bin for audit log
+    const originalBin = await Bin.findOne(query);
 
-    if (!bin) {
+    if (!originalBin) {
       return next(
         new ErrorResponse(`Bin not found with id of ${req.params.id}`, 404)
       );
     }
 
+    // Find and update bin
+    const bin = await Bin.findOneAndUpdate(query, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Create audit log
+    await logEntityUpdate(req, originalBin, bin, "Bin", "bin");
+
     res.status(200).json({
       success: true,
-      data: bin
+      data: bin,
     });
   } catch (err) {
     next(err);
@@ -274,9 +300,9 @@ exports.updateBin = async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteBin = async (req, res, next) => {
   try {
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If shelfId is provided in params, add to query
@@ -293,20 +319,28 @@ exports.deleteBin = async (req, res, next) => {
     }
 
     // Check if inventory is assigned to this bin
-    const inventoryCount = await Inventory.countDocuments({ 'location.binId': req.params.id });
-    
+    const inventoryCount = await Inventory.countDocuments({
+      "location.binId": req.params.id,
+    });
+
     if (inventoryCount > 0) {
       return next(
-        new ErrorResponse(`Cannot delete bin as it contains ${inventoryCount} inventory items`, 400)
+        new ErrorResponse(
+          `Cannot delete bin as it contains ${inventoryCount} inventory items`,
+          400
+        )
       );
     }
 
-      await Bin.findByIdAndDelete(bin._id);
+    // Create audit log before deletion
+    await logEntityDeletion(req, bin, "Bin", "bin");
+
+    await Bin.findByIdAndDelete(bin._id);
 
     res.status(200).json({
       success: true,
       data: {},
-      message: 'Bins deleted successfully'
+      message: "Bins deleted successfully",
     });
   } catch (err) {
     next(err);
@@ -320,7 +354,7 @@ exports.getBinInventory = async (req, res, next) => {
   try {
     const bin = await Bin.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!bin) {
@@ -330,12 +364,14 @@ exports.getBinInventory = async (req, res, next) => {
     }
 
     // Get inventory items in this bin
-    const inventoryItems = await Inventory.find({ 'location.binId': req.params.id });
+    const inventoryItems = await Inventory.find({
+      "location.binId": req.params.id,
+    });
 
     res.status(200).json({
       success: true,
       count: inventoryItems.length,
-      data: inventoryItems
+      data: inventoryItems,
     });
   } catch (err) {
     next(err);
@@ -348,16 +384,16 @@ exports.getBinInventory = async (req, res, next) => {
 exports.updateBinCapacity = async (req, res, next) => {
   try {
     const { capacity } = req.body;
-    
+
     if (!capacity || capacity < 0) {
       return next(
-        new ErrorResponse('Please provide a valid capacity value', 400)
+        new ErrorResponse("Please provide a valid capacity value", 400)
       );
     }
 
     const bin = await Bin.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!bin) {
@@ -369,7 +405,10 @@ exports.updateBinCapacity = async (req, res, next) => {
     // Check if new capacity is less than current items
     if (capacity < bin.currentItems) {
       return next(
-        new ErrorResponse(`Capacity cannot be less than current items count (${bin.currentItems})`, 400)
+        new ErrorResponse(
+          `Capacity cannot be less than current items count (${bin.currentItems})`,
+          400
+        )
       );
     }
 
@@ -381,7 +420,7 @@ exports.updateBinCapacity = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: bin
+      data: bin,
     });
   } catch (err) {
     next(err);
@@ -413,12 +452,12 @@ exports.getSimpleBins = async (req, res, next) => {
 
     // Filter by active status if provided
     if (req.query.isActive !== undefined) {
-      query.isActive = req.query.isActive === 'true';
+      query.isActive = req.query.isActive === "true";
     }
 
     // Execute query and select only id, name, and parent IDs
     const bins = await Bin.find(query)
-      .select('_id name shelfId zoneId warehouseId')
+      .select("_id name shelfId zoneId warehouseId")
       .sort({ name: 1 });
 
     res.status(200).json({

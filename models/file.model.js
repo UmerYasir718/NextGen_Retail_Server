@@ -29,7 +29,14 @@ const FileSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "process", "processing", "approved", "rejected"],
+    enum: [
+      "pending",
+      "process",
+      "processing",
+      "confirmation_pending",
+      "approved",
+      "rejected",
+    ],
     default: "pending",
   },
   fileSize: {

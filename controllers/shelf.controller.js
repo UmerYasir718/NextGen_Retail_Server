@@ -1,9 +1,14 @@
-const Shelf = require('../models/shelf.model');
-const Bin = require('../models/bin.model');
-const Zone = require('../models/zone.model');
-const Warehouse = require('../models/warehouse.model');
-const Inventory = require('../models/inventory.model');
-const ErrorResponse = require('../utils/errorResponse');
+const Shelf = require("../models/shelf.model");
+const Bin = require("../models/bin.model");
+const Zone = require("../models/zone.model");
+const Warehouse = require("../models/warehouse.model");
+const Inventory = require("../models/inventory.model");
+const ErrorResponse = require("../utils/errorResponse");
+const {
+  logEntityCreation,
+  logEntityUpdate,
+  logEntityDeletion,
+} = require("../utils/auditLogger");
 
 // @desc    Get all shelves in a zone
 // @route   GET /api/shelves
@@ -18,12 +23,15 @@ exports.getShelves = async (req, res, next) => {
       // Check if zone exists and belongs to company
       const zone = await Zone.findOne({
         _id: req.params.zoneId,
-        companyId: req.user.companyId
+        companyId: req.user.companyId,
       });
 
       if (!zone) {
         return next(
-          new ErrorResponse(`Zone not found with id of ${req.params.zoneId}`, 404)
+          new ErrorResponse(
+            `Zone not found with id of ${req.params.zoneId}`,
+            404
+          )
         );
       }
 
@@ -37,12 +45,12 @@ exports.getShelves = async (req, res, next) => {
 
     // Filter by active status if provided
     if (req.query.isActive !== undefined) {
-      query.isActive = req.query.isActive === 'true';
+      query.isActive = req.query.isActive === "true";
     }
 
     // Search by name
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.name = searchRegex;
     }
 
@@ -64,14 +72,18 @@ exports.getShelves = async (req, res, next) => {
 
         // Calculate utilization percentage
         let capacityValue = shelf.capacity || 0;
-        let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
-        
+        let utilizationPercentage =
+          capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+
         // Format to 2 decimal places and ensure it doesn't exceed 100%
-        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+        utilizationPercentage = Math.min(
+          parseFloat(utilizationPercentage.toFixed(2)),
+          100
+        );
 
         // Convert the Mongoose document to a plain JavaScript object
         const shelfObj = shelf.toObject();
-        
+
         // Add utilization data
         return {
           ...shelfObj,
@@ -88,7 +100,7 @@ exports.getShelves = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: shelvesWithUtilization.length,
-      data: shelvesWithUtilization
+      data: shelvesWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -101,9 +113,9 @@ exports.getShelves = async (req, res, next) => {
 // @access  Private
 exports.getShelf = async (req, res, next) => {
   try {
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If zoneId is provided in params, add to query
@@ -131,14 +143,18 @@ exports.getShelf = async (req, res, next) => {
 
     // Calculate utilization percentage
     let capacityValue = shelf.capacity || 0;
-    let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
-    
+    let utilizationPercentage =
+      capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+
     // Format to 2 decimal places and ensure it doesn't exceed 100%
-    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+    utilizationPercentage = Math.min(
+      parseFloat(utilizationPercentage.toFixed(2)),
+      100
+    );
 
     // Convert the Mongoose document to a plain JavaScript object
     const shelfObj = shelf.toObject();
-    
+
     // Add utilization data
     const shelfWithUtilization = {
       ...shelfObj,
@@ -152,7 +168,7 @@ exports.getShelf = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: shelfWithUtilization
+      data: shelfWithUtilization,
     });
   } catch (err) {
     next(err);
@@ -177,7 +193,7 @@ exports.createShelf = async (req, res, next) => {
     // Check if zone exists and belongs to company
     const zone = await Zone.findOne({
       _id: req.body.zoneId,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!zone) {
@@ -192,21 +208,27 @@ exports.createShelf = async (req, res, next) => {
     // Check if shelf with this name already exists in the zone
     const existingShelf = await Shelf.findOne({
       name: req.body.name,
-      zoneId: req.body.zoneId
+      zoneId: req.body.zoneId,
     });
 
     if (existingShelf) {
       return next(
-        new ErrorResponse(`Shelf with name ${req.body.name} already exists in this zone`, 400)
+        new ErrorResponse(
+          `Shelf with name ${req.body.name} already exists in this zone`,
+          400
+        )
       );
     }
 
     // Create shelf
     const shelf = await Shelf.create(req.body);
 
+    // Create audit log
+    await logEntityCreation(req, shelf, "Shelf", "shelf");
+
     res.status(201).json({
       success: true,
-      data: shelf
+      data: shelf,
     });
   } catch (err) {
     next(err);
@@ -223,9 +245,9 @@ exports.updateShelf = async (req, res, next) => {
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
 
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If zoneId is provided in params, add to query
@@ -233,25 +255,27 @@ exports.updateShelf = async (req, res, next) => {
       query.zoneId = req.params.zoneId;
     }
 
-    // Find and update shelf
-    const shelf = await Shelf.findOneAndUpdate(
-      query,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
+    // Get original shelf for audit log
+    const originalShelf = await Shelf.findOne(query);
 
-    if (!shelf) {
+    if (!originalShelf) {
       return next(
         new ErrorResponse(`Shelf not found with id of ${req.params.id}`, 404)
       );
     }
 
+    // Find and update shelf
+    const shelf = await Shelf.findOneAndUpdate(query, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Create audit log
+    await logEntityUpdate(req, originalShelf, shelf, "Shelf", "shelf");
+
     res.status(200).json({
       success: true,
-      data: shelf
+      data: shelf,
     });
   } catch (err) {
     next(err);
@@ -264,9 +288,9 @@ exports.updateShelf = async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteShelf = async (req, res, next) => {
   try {
-    let query = { 
+    let query = {
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     };
 
     // If zoneId is provided in params, add to query
@@ -284,32 +308,39 @@ exports.deleteShelf = async (req, res, next) => {
 
     // Check if shelf has bins
     const binCount = await Bin.countDocuments({ shelfId: req.params.id });
-    
+
     if (binCount > 0) {
       return next(
-        new ErrorResponse(`Cannot delete shelf as it contains ${binCount} bins`, 400)
+        new ErrorResponse(
+          `Cannot delete shelf as it contains ${binCount} bins`,
+          400
+        )
       );
     }
 
     // Check if inventory is assigned to this shelf
-    const inventoryCount = await Inventory.countDocuments({ 'location.shelfId': req.params.id });
-    
+    const inventoryCount = await Inventory.countDocuments({
+      "location.shelfId": req.params.id,
+    });
+
     if (inventoryCount > 0) {
       return next(
-        new ErrorResponse(`Cannot delete shelf as it contains ${inventoryCount} inventory items`, 400)
+        new ErrorResponse(
+          `Cannot delete shelf as it contains ${inventoryCount} inventory items`,
+          400
+        )
       );
     }
 
-  await Shelf.findByIdAndDelete(shelf._id)
-    // await zone.remove();
+    // Create audit log before deletion
+    await logEntityDeletion(req, shelf, "Shelf", "shelf");
+
+    await Shelf.findByIdAndDelete(shelf._id);
 
     res.status(200).json({
       success: true,
-      data: {},   message: 'Shelf deleted successfully'
-    });
-    res.status(200).json({
-      success: true,
-      data: {}
+      data: {},
+      message: "Shelf deleted successfully",
     });
   } catch (err) {
     next(err);
@@ -323,7 +354,7 @@ exports.getShelfUtilization = async (req, res, next) => {
   try {
     const shelf = await Shelf.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!shelf) {
@@ -334,24 +365,26 @@ exports.getShelfUtilization = async (req, res, next) => {
 
     // Get bins in this shelf
     const bins = await Bin.find({ shelfId: req.params.id });
-    
+
     // Calculate utilization
     let totalCapacity = shelf.capacity;
     let totalUsed = 0;
     let binUtilization = [];
-    
-    bins.forEach(bin => {
+
+    bins.forEach((bin) => {
       totalUsed += bin.currentItems;
       binUtilization.push({
         binId: bin._id,
         name: bin.name,
         capacity: bin.capacity,
         used: bin.currentItems,
-        utilizationRate: bin.capacity > 0 ? (bin.currentItems / bin.capacity) * 100 : 0
+        utilizationRate:
+          bin.capacity > 0 ? (bin.currentItems / bin.capacity) * 100 : 0,
       });
     });
-    
-    const utilizationRate = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
+
+    const utilizationRate =
+      totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
 
     res.status(200).json({
       success: true,
@@ -362,8 +395,8 @@ exports.getShelfUtilization = async (req, res, next) => {
         totalUsed,
         utilizationRate: Math.round(utilizationRate * 100) / 100,
         binCount: bins.length,
-        binUtilization
-      }
+        binUtilization,
+      },
     });
   } catch (err) {
     next(err);
@@ -390,12 +423,12 @@ exports.getSimpleShelves = async (req, res, next) => {
 
     // Filter by active status if provided
     if (req.query.isActive !== undefined) {
-      query.isActive = req.query.isActive === 'true';
+      query.isActive = req.query.isActive === "true";
     }
 
     // Execute query and select only id, name, and zoneId
     const shelves = await Shelf.find(query)
-      .select('_id name zoneId warehouseId')
+      .select("_id name zoneId warehouseId")
       .sort({ name: 1 });
 
     res.status(200).json({

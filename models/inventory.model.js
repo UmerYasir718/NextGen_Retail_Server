@@ -35,19 +35,22 @@ const InventorySchema = new mongoose.Schema({
     warehouseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Warehouse",
+      required: false,
     },
     zoneId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Zone",
+      required: false,
     },
     shelfId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shelf",
+      required: false,
     },
     binId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Bin",
-      required: [true, "Please add bin"],
+      required: false,
     },
   },
   status: {
@@ -74,19 +77,14 @@ const InventorySchema = new mongoose.Schema({
       default: 0,
     },
   },
-  // images: [
-  //   {
-  //     type: String,
-  //   },
-  // ],
-  // supplier: {
-  //   name: String,
-  //   contactInfo: String
-  // },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Company",
     required: true,
+  },
+  fileId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "File",
   },
   isActive: {
     type: Boolean,
@@ -120,6 +118,7 @@ InventorySchema.index({ tagId: 1 });
 InventorySchema.index({ companyId: 1 });
 InventorySchema.index({ category: 1, companyId: 1 });
 InventorySchema.index({ "location.warehouseId": 1 });
+InventorySchema.index({ fileId: 1 });
 
 // Pre-save middleware to update status based on quantity and threshold
 InventorySchema.pre("save", function (next) {

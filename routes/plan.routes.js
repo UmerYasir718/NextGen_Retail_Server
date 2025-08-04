@@ -8,6 +8,7 @@ const {
   assignPlanToCompany,
   createCheckoutSession,
   stripeWebhook,
+  manualPlanUpdate,
 } = require("../controllers/plan.controller");
 
 const router = express.Router();
@@ -30,7 +31,7 @@ router.get("/", getPlans);
 router.get("/:id", getPlan);
 
 // Admin only routes
-router.post("/:id/checkout", authorize("company_admin"), createCheckoutSession);
+router.post("/checkout", authorize("company_admin"), createCheckoutSession);
 
 // super_admin only routes
 router.post("/", authorize("super_admin"), createPlan);
@@ -41,5 +42,6 @@ router.post(
   authorize("super_admin"),
   assignPlanToCompany
 );
+router.post("/manual-update", authorize("super_admin"), manualPlanUpdate);
 
 module.exports = router;

@@ -4,6 +4,11 @@ const Shelf = require("../models/shelf.model");
 const Bin = require("../models/bin.model");
 const Inventory = require("../models/inventory.model");
 const ErrorResponse = require("../utils/errorResponse");
+const {
+  logEntityCreation,
+  logEntityUpdate,
+  logEntityDeletion,
+} = require("../utils/auditLogger");
 
 // @desc    Get all warehouses
 // @route   GET /api/warehouses
@@ -43,14 +48,18 @@ exports.getWarehouses = async (req, res, next) => {
         // Calculate utilization percentage
         // If capacity is not a number, default to 0% utilization
         let capacityValue = parseInt(warehouse.capacity) || 0;
-        let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
-        
+        let utilizationPercentage =
+          capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+
         // Format to 2 decimal places and ensure it doesn't exceed 100%
-        utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+        utilizationPercentage = Math.min(
+          parseFloat(utilizationPercentage.toFixed(2)),
+          100
+        );
 
         // Convert the Mongoose document to a plain JavaScript object
         const warehouseObj = warehouse.toObject();
-        
+
         // Add utilization data
         return {
           ...warehouseObj,
@@ -106,14 +115,18 @@ exports.getWarehouse = async (req, res, next) => {
     // Calculate utilization percentage
     // If capacity is not a number, default to 0% utilization
     let capacityValue = parseInt(warehouse.capacity) || 0;
-    let utilizationPercentage = capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
-    
+    let utilizationPercentage =
+      capacityValue > 0 ? (inventoryCount / capacityValue) * 100 : 0;
+
     // Format to 2 decimal places and ensure it doesn't exceed 100%
-    utilizationPercentage = Math.min(parseFloat(utilizationPercentage.toFixed(2)), 100);
+    utilizationPercentage = Math.min(
+      parseFloat(utilizationPercentage.toFixed(2)),
+      100
+    );
 
     // Convert the Mongoose document to a plain JavaScript object
     const warehouseObj = warehouse.toObject();
-    
+
     // Add utilization data
     const warehouseWithUtilization = {
       ...warehouseObj,
@@ -161,6 +174,10 @@ exports.createWarehouse = async (req, res, next) => {
     // Create warehouse
     const warehouse = await Warehouse.create(req.body);
     console.log("object", warehouse);
+
+    // Create audit log
+    await logEntityCreation(req, warehouse, "Warehouse", "warehouse");
+
     res.status(201).json({
       success: true,
       data: warehouse,
@@ -179,6 +196,21 @@ exports.updateWarehouse = async (req, res, next) => {
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
 
+    // Get original warehouse for audit log
+    const originalWarehouse = await Warehouse.findOne({
+      _id: req.params.id,
+      companyId: req.user.companyId,
+    });
+
+    if (!originalWarehouse) {
+      return next(
+        new ErrorResponse(
+          `Warehouse not found with id of ${req.params.id}`,
+          404
+        )
+      );
+    }
+
     // Find and update warehouse
     const warehouse = await Warehouse.findOneAndUpdate(
       {
@@ -192,14 +224,14 @@ exports.updateWarehouse = async (req, res, next) => {
       }
     );
 
-    if (!warehouse) {
-      return next(
-        new ErrorResponse(
-          `Warehouse not found with id of ${req.params.id}`,
-          404
-        )
-      );
-    }
+    // Create audit log
+    await logEntityUpdate(
+      req,
+      originalWarehouse,
+      warehouse,
+      "Warehouse",
+      "warehouse"
+    );
 
     res.status(200).json({
       success: true,
@@ -254,6 +286,9 @@ exports.deleteWarehouse = async (req, res, next) => {
         )
       );
     }
+
+    // Create audit log before deletion
+    await logEntityDeletion(req, warehouse, "Warehouse", "warehouse");
 
     await warehouse.remove();
 
@@ -524,6 +559,9 @@ exports.createZone = async (req, res, next) => {
     // Create zone
     const zone = await Zone.create(req.body);
 
+    // Create audit log
+    await logEntityCreation(req, zone, "Zone", "zone");
+
     res.status(201).json({
       success: true,
       data: zone,
@@ -542,6 +580,19 @@ exports.updateZone = async (req, res, next) => {
     req.body.updatedBy = req.user.id;
     req.body.updatedAt = Date.now();
 
+    // Get original zone for audit log
+    const originalZone = await Zone.findOne({
+      _id: req.params.id,
+      warehouseId: req.params.warehouseId,
+      companyId: req.user.companyId,
+    });
+
+    if (!originalZone) {
+      return next(
+        new ErrorResponse(`Zone not found with id of ${req.params.id}`, 404)
+      );
+    }
+
     // Find and update zone
     const zone = await Zone.findOneAndUpdate(
       {
@@ -556,11 +607,8 @@ exports.updateZone = async (req, res, next) => {
       }
     );
 
-    if (!zone) {
-      return next(
-        new ErrorResponse(`Zone not found with id of ${req.params.id}`, 404)
-      );
-    }
+    // Create audit log
+    await logEntityUpdate(req, originalZone, zone, "Zone", "zone");
 
     res.status(200).json({
       success: true,
@@ -613,8 +661,11 @@ exports.deleteZone = async (req, res, next) => {
         )
       );
     }
+
+    // Create audit log before deletion
+    await logEntityDeletion(req, zone, "Zone", "zone");
+
     await Zone.findByIdAndDelete(zone._id);
-    // await zone.remove();
 
     res.status(200).json({
       success: true,
@@ -641,7 +692,7 @@ exports.getSimpleWarehouses = async (req, res, next) => {
 
     // Execute query and select only id and name
     const warehouses = await Warehouse.find(query)
-      .select('_id name')
+      .select("_id name")
       .sort({ name: 1 });
 
     res.status(200).json({

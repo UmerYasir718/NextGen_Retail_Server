@@ -197,21 +197,36 @@ exports.assignPlanToCompany = async (req, res, next) => {
 };
 
 // @desc    Create checkout session for plan subscription
-// @route   POST /api/plans/:id/checkout
+// @route   POST /api/plans/checkout
 // @access  Private/Admin
 exports.createCheckoutSession = async (req, res, next) => {
   try {
-    const plan = await Plan.findById(req.params.id);
+    const { planId } = req.body;
+
+    if (!planId) {
+      return next(new ErrorResponse("Plan ID is required", 400));
+    }
+
+    const plan = await Plan.findById(planId);
     const company = await Company.findById(req.user.companyId);
 
     if (!plan) {
       return next(
-        new ErrorResponse(`Plan not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(`Plan not found with id of ${planId}`, 404)
       );
     }
 
     if (!company) {
       return next(new ErrorResponse(`Company not found`, 404));
+    }
+
+    if (!plan.stripePriceId) {
+      return next(
+        new ErrorResponse(
+          `Plan is not configured for payments. Please contact support.`,
+          400
+        )
+      );
     }
 
     // Create or retrieve Stripe customer
@@ -232,6 +247,19 @@ exports.createCheckoutSession = async (req, res, next) => {
       await company.save();
     }
 
+    // Ensure URLs have proper scheme
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const successUrl = req.body.successUrl
+      ? req.body.successUrl.startsWith("http")
+        ? req.body.successUrl
+        : `${baseUrl}${req.body.successUrl}`
+      : `${baseUrl}/dashboard?payment=success`;
+    const cancelUrl = req.body.cancelUrl
+      ? req.body.cancelUrl.startsWith("http")
+        ? req.body.cancelUrl
+        : `${baseUrl}${req.body.cancelUrl}`
+      : `${baseUrl}/plans?payment=cancelled`;
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
@@ -243,8 +271,8 @@ exports.createCheckoutSession = async (req, res, next) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.body.successUrl}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.body.cancelUrl}`,
+      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl,
       metadata: {
         companyId: company._id.toString(),
         planId: plan._id.toString(),
@@ -282,6 +310,8 @@ exports.stripeWebhook = async (req, res, next) => {
   switch (event.type) {
     case "checkout.session.completed":
       const session = event.data.object;
+      console.log("🔄 Stripe webhook: checkout.session.completed received");
+      console.log("Session metadata:", session.metadata);
 
       // Update company with plan details
       if (
@@ -289,10 +319,20 @@ exports.stripeWebhook = async (req, res, next) => {
         session.metadata.companyId &&
         session.metadata.planId
       ) {
+        console.log(
+          "📋 Processing plan update for company:",
+          session.metadata.companyId
+        );
+        console.log("📋 New plan ID:", session.metadata.planId);
+
         const company = await Company.findById(session.metadata.companyId);
         const plan = await Plan.findById(session.metadata.planId);
 
         if (company && plan) {
+          console.log("✅ Found company and plan");
+          console.log("📊 Current company planId:", company.planId);
+          console.log("📊 Current isTrialPeriod:", company.isTrialPeriod);
+
           // Calculate plan end date based on duration
           const startDate = new Date();
           const endDate = new Date();
@@ -305,24 +345,35 @@ exports.stripeWebhook = async (req, res, next) => {
             endDate.setFullYear(endDate.getFullYear() + 1);
           }
 
-          // Update company with plan details
-          company.planId = plan._id;
-          company.planStartDate = startDate;
-          company.planEndDate = endDate;
-          company.isTrialPeriod = false;
+          console.log("📅 Plan start date:", startDate);
+          console.log("📅 Plan end date:", endDate);
 
-          await company.save();
-
-          // Update planId for all users in the company
-          await User.updateMany(
-            { companyId: company._id },
-            { planId: plan._id }
+          // Use plan manager to update company plan
+          const planManager = require("../utils/planManager");
+          const updatedCompany = await planManager.updateCompanyPlan(
+            company._id,
+            plan._id,
+            startDate,
+            endDate
           );
 
+          console.log("✅ Plan update completed");
+          console.log("📊 Updated company planId:", updatedCompany.planId);
           console.log(
-            `Updated plan for company ${company.name} and all its users`
+            "📊 Updated isTrialPeriod:",
+            updatedCompany.isTrialPeriod
           );
+          console.log(
+            `Updated plan for company ${company.name} and synced all users`
+          );
+        } else {
+          console.log("❌ Company or plan not found");
+          console.log("Company found:", !!company);
+          console.log("Plan found:", !!plan);
         }
+      } else {
+        console.log("❌ Missing metadata in session");
+        console.log("Session metadata:", session.metadata);
       }
       break;
 
@@ -347,4 +398,79 @@ exports.stripeWebhook = async (req, res, next) => {
 
   // Return a 200 response to acknowledge receipt of the event
   res.status(200).json({ received: true });
+};
+
+// @desc    Manual plan update (for testing)
+// @route   POST /api/plans/manual-update
+// @access  Private/SuperAdmin
+exports.manualPlanUpdate = async (req, res, next) => {
+  try {
+    const { companyId, planId } = req.body;
+
+    if (!companyId || !planId) {
+      return next(
+        new ErrorResponse("Company ID and Plan ID are required", 400)
+      );
+    }
+
+    const company = await Company.findById(companyId);
+    const plan = await Plan.findById(planId);
+
+    if (!company) {
+      return next(new ErrorResponse("Company not found", 404));
+    }
+
+    if (!plan) {
+      return next(new ErrorResponse("Plan not found", 404));
+    }
+
+    console.log("🔄 Manual plan update initiated");
+    console.log("📋 Company:", company.name);
+    console.log("📋 Current planId:", company.planId);
+    console.log("📋 Current isTrialPeriod:", company.isTrialPeriod);
+    console.log("📋 New plan:", plan.name);
+
+    // Calculate plan end date based on duration
+    const startDate = new Date();
+    const endDate = new Date();
+
+    if (plan.duration === 1) {
+      endDate.setMonth(endDate.getMonth() + 1);
+    } else if (plan.duration === 6) {
+      endDate.setMonth(endDate.getMonth() + 6);
+    } else if (plan.duration === 12) {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    }
+
+    // Use plan manager to update company plan
+    const planManager = require("../utils/planManager");
+    const updatedCompany = await planManager.updateCompanyPlan(
+      company._id,
+      plan._id,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Plan updated successfully",
+      data: {
+        company: {
+          id: updatedCompany._id,
+          name: updatedCompany.name,
+          planId: updatedCompany.planId,
+          isTrialPeriod: updatedCompany.isTrialPeriod,
+          planStartDate: updatedCompany.planStartDate,
+          planEndDate: updatedCompany.planEndDate,
+        },
+        plan: {
+          id: plan._id,
+          name: plan.name,
+          duration: plan.duration,
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 };

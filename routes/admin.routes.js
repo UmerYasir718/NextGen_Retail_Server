@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getAdminDashboard,
+  getAllUsers,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -13,5 +14,6 @@ router.use(protect);
 
 // SuperAdmin only routes
 router.route("/dashboard").get(authorize("super_admin"), getAdminDashboard);
+router.route("/users").get(authorize("super_admin"), getAllUsers);
 
-module.exports = router; 
+module.exports = router;

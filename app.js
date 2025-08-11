@@ -17,8 +17,10 @@ const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
+  transports: ["websocket", "polling"],
 });
 
 // Middleware
@@ -51,6 +53,7 @@ const fileRoutes = require("./routes/file.routes");
 const uhfReaderRoutes = require("./routes/uhfReader.routes");
 const uhfTagRoutes = require("./routes/uhfTag.routes");
 const fcmTokenRoutes = require("./routes/fcmToken.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 // Use routes
 app.use("/api/auth", authRoutes);
@@ -71,10 +74,14 @@ app.use("/api/forecast", forecastRoutes);
 app.use("/api/uhf-readers", uhfReaderRoutes);
 app.use("/api/uhf-tags", uhfTagRoutes);
 app.use("/api", fcmTokenRoutes);
+app.use("/api/admin", adminRoutes);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("Welcome to Windsurf Warehouse Inventory Management System API");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Socket.IO setup for UHF/RFID integration
@@ -93,7 +100,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 

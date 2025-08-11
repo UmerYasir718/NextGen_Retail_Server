@@ -1,8 +1,8 @@
-const Shipment = require('../models/shipment.model');
-const Inventory = require('../models/inventory.model');
-const ItemMovement = require('../models/itemMovement.model');
-const ErrorResponse = require('../utils/errorResponse');
-const cloudinary = require('../utils/cloudinary');
+const Shipment = require("../models/shipment.model");
+const Inventory = require("../models/inventory.model");
+const ItemMovement = require("../models/itemMovement.model");
+const ErrorResponse = require("../utils/errorResponse");
+const cloudinary = require("../utils/cloudinary");
 
 // @desc    Get all shipments
 // @route   GET /api/shipments
@@ -26,7 +26,7 @@ exports.getShipments = async (req, res, next) => {
     if (req.query.startDate && req.query.endDate) {
       query.shipmentDate = {
         $gte: new Date(req.query.startDate),
-        $lte: new Date(req.query.endDate)
+        $lte: new Date(req.query.endDate),
       };
     } else if (req.query.startDate) {
       query.shipmentDate = { $gte: new Date(req.query.startDate) };
@@ -36,11 +36,11 @@ exports.getShipments = async (req, res, next) => {
 
     // Search by reference number or supplier/customer
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, 'i');
+      const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { referenceNumber: searchRegex },
-        { 'supplier.name': searchRegex },
-        { 'customer.name': searchRegex }
+        { "supplier.name": searchRegex },
+        { "customer.name": searchRegex },
       ];
     }
 
@@ -53,7 +53,7 @@ exports.getShipments = async (req, res, next) => {
 
     // Execute query
     const shipments = await Shipment.find(query)
-      .populate('createdBy', 'name email')
+      .populate("createdBy", "name email")
       .skip(startIndex)
       .limit(limit)
       .sort({ shipmentDate: -1 });
@@ -64,14 +64,14 @@ exports.getShipments = async (req, res, next) => {
     if (endIndex < total) {
       pagination.next = {
         page: page + 1,
-        limit
+        limit,
       };
     }
 
     if (startIndex > 0) {
       pagination.prev = {
         page: page - 1,
-        limit
+        limit,
       };
     }
 
@@ -80,7 +80,7 @@ exports.getShipments = async (req, res, next) => {
       count: shipments.length,
       pagination,
       total,
-      data: shipments
+      data: shipments,
     });
   } catch (err) {
     next(err);
@@ -94,8 +94,8 @@ exports.getShipment = async (req, res, next) => {
   try {
     const shipment = await Shipment.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
-    }).populate('createdBy', 'name email');
+      companyId: req.user.companyId,
+    }).populate("createdBy", "name email");
 
     if (!shipment) {
       return next(
@@ -105,7 +105,7 @@ exports.getShipment = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: shipment
+      data: shipment,
     });
   } catch (err) {
     next(err);
@@ -125,18 +125,18 @@ exports.createShipment = async (req, res, next) => {
     const shipment = await Shipment.create(req.body);
 
     // If shipment is received, update inventory
-    if (req.body.type === 'Incoming' && req.body.status === 'Received') {
+    if (req.body.type === "Incoming" && req.body.status === "Received") {
       await processIncomingShipment(shipment, req.user.id);
     }
 
     // If shipment is shipped, update inventory
-    if (req.body.type === 'Outgoing' && req.body.status === 'Shipped') {
+    if (req.body.type === "Outgoing" && req.body.status === "Shipped") {
       await processOutgoingShipment(shipment, req.user.id);
     }
 
     res.status(201).json({
       success: true,
-      data: shipment
+      data: shipment,
     });
   } catch (err) {
     next(err);
@@ -150,7 +150,7 @@ exports.updateShipment = async (req, res, next) => {
   try {
     const shipment = await Shipment.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!shipment) {
@@ -160,9 +160,16 @@ exports.updateShipment = async (req, res, next) => {
     }
 
     // Check if status is changing to Received or Shipped
-    const statusChanging = req.body.status && req.body.status !== shipment.status;
-    const becomingReceived = statusChanging && req.body.status === 'Received' && shipment.type === 'Incoming';
-    const becomingShipped = statusChanging && req.body.status === 'Shipped' && shipment.type === 'Outgoing';
+    const statusChanging =
+      req.body.status && req.body.status !== shipment.status;
+    const becomingReceived =
+      statusChanging &&
+      req.body.status === "Received" &&
+      shipment.type === "Incoming";
+    const becomingShipped =
+      statusChanging &&
+      req.body.status === "Shipped" &&
+      shipment.type === "Outgoing";
 
     // Update shipment
     const updatedShipment = await Shipment.findByIdAndUpdate(
@@ -170,7 +177,7 @@ exports.updateShipment = async (req, res, next) => {
       req.body,
       {
         new: true,
-        runValidators: true
+        runValidators: true,
       }
     );
 
@@ -185,7 +192,7 @@ exports.updateShipment = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: updatedShipment
+      data: updatedShipment,
     });
   } catch (err) {
     next(err);
@@ -199,7 +206,7 @@ exports.deleteShipment = async (req, res, next) => {
   try {
     const shipment = await Shipment.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!shipment) {
@@ -210,11 +217,14 @@ exports.deleteShipment = async (req, res, next) => {
 
     // Check if shipment has been received or shipped
     if (
-      (shipment.type === 'Incoming' && shipment.status === 'Received') ||
-      (shipment.type === 'Outgoing' && shipment.status === 'Shipped')
+      (shipment.type === "Incoming" && shipment.status === "Received") ||
+      (shipment.type === "Outgoing" && shipment.status === "Shipped")
     ) {
       return next(
-        new ErrorResponse(`Cannot delete a shipment that has been ${shipment.status.toLowerCase()}`, 400)
+        new ErrorResponse(
+          `Cannot delete a shipment that has been ${shipment.status.toLowerCase()}`,
+          400
+        )
       );
     }
 
@@ -222,7 +232,7 @@ exports.deleteShipment = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
   } catch (err) {
     next(err);
@@ -236,7 +246,7 @@ exports.uploadShipmentDocument = async (req, res, next) => {
   try {
     const shipment = await Shipment.findOne({
       _id: req.params.id,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     });
 
     if (!shipment) {
@@ -246,26 +256,28 @@ exports.uploadShipmentDocument = async (req, res, next) => {
     }
 
     if (!req.files || !req.files.document) {
-      return next(new ErrorResponse('Please upload a document', 400));
+      return next(new ErrorResponse("Please upload a document", 400));
     }
 
     const file = req.files.document;
 
     // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      return next(new ErrorResponse('File size cannot exceed 5MB', 400));
+      return next(new ErrorResponse("File size cannot exceed 5MB", 400));
     }
 
     // Check file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
     if (!allowedTypes.includes(file.mimetype)) {
-      return next(new ErrorResponse('Please upload a PDF, JPEG, or PNG file', 400));
+      return next(
+        new ErrorResponse("Please upload a PDF, JPEG, or PNG file", 400)
+      );
     }
 
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
-      folder: 'shipment_documents',
-      resource_type: 'auto'
+      folder: "shipment_documents",
+      resource_type: "auto",
     });
 
     // Add document to shipment
@@ -274,7 +286,7 @@ exports.uploadShipmentDocument = async (req, res, next) => {
       url: result.secure_url,
       type: file.mimetype,
       uploadedAt: Date.now(),
-      uploadedBy: req.user.id
+      uploadedBy: req.user.id,
     };
 
     shipment.documents.push(document);
@@ -282,7 +294,7 @@ exports.uploadShipmentDocument = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: document
+      data: document,
     });
   } catch (err) {
     next(err);
@@ -304,15 +316,15 @@ exports.getShipmentStats = async (req, res, next) => {
       {
         $match: {
           companyId: req.user.companyId,
-          shipmentDate: { $gte: startDate, $lte: endDate }
-        }
+          shipmentDate: { $gte: startDate, $lte: endDate },
+        },
       },
       {
         $group: {
-          _id: { type: '$type', status: '$status' },
-          count: { $sum: 1 }
-        }
-      }
+          _id: { type: "$type", status: "$status" },
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     // Get daily shipment counts
@@ -320,21 +332,23 @@ exports.getShipmentStats = async (req, res, next) => {
       {
         $match: {
           companyId: req.user.companyId,
-          shipmentDate: { $gte: startDate, $lte: endDate }
-        }
+          shipmentDate: { $gte: startDate, $lte: endDate },
+        },
       },
       {
         $group: {
           _id: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$shipmentDate' } },
-            type: '$type'
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: "$shipmentDate" },
+            },
+            type: "$type",
           },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
-        $sort: { '_id.date': 1 }
-      }
+        $sort: { "_id.date": 1 },
+      },
     ]);
 
     // Format the results
@@ -343,41 +357,41 @@ exports.getShipmentStats = async (req, res, next) => {
         total: 0,
         pending: 0,
         received: 0,
-        cancelled: 0
+        cancelled: 0,
       },
       outgoing: {
         total: 0,
         pending: 0,
         shipped: 0,
-        cancelled: 0
+        cancelled: 0,
       },
-      daily: {}
+      daily: {},
     };
 
     // Process type counts
-    typeCounts.forEach(item => {
+    typeCounts.forEach((item) => {
       const type = item._id.type.toLowerCase();
       const status = item._id.status.toLowerCase();
-      
+
       stats[type].total += item.count;
       stats[type][status] += item.count;
     });
 
     // Process daily counts
-    dailyShipments.forEach(item => {
+    dailyShipments.forEach((item) => {
       const date = item._id.date;
       const type = item._id.type.toLowerCase();
-      
+
       if (!stats.daily[date]) {
         stats.daily[date] = { incoming: 0, outgoing: 0 };
       }
-      
+
       stats.daily[date][type] = item.count;
     });
 
     res.status(200).json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (err) {
     next(err);
@@ -391,32 +405,48 @@ async function processIncomingShipment(shipment, userId) {
     // Find inventory item by SKU
     let inventoryItem = await Inventory.findOne({
       sku: item.sku,
-      companyId: shipment.companyId
+      companyId: shipment.companyId,
     });
 
     if (inventoryItem) {
+      // Store original quantity for notification check
+      const originalQuantity = inventoryItem.quantity;
+
       // Update existing inventory
       inventoryItem.quantity += item.quantity;
       await inventoryItem.save();
+
+      // Check for low stock notification (only if quantity was previously low)
+      if (
+        originalQuantity <= inventoryItem.threshold &&
+        inventoryItem.quantity > inventoryItem.threshold
+      ) {
+        // Reset the alert flag since quantity is now above threshold
+        inventoryItem.lowStockAlertSent = false;
+        await inventoryItem.save();
+        console.log(
+          `Low stock alert flag reset for item: ${inventoryItem.name} (${inventoryItem.sku}) - quantity restored`
+        );
+      }
     } else {
       // Create new inventory item
       inventoryItem = await Inventory.create({
         name: item.name,
         sku: item.sku,
-        description: item.description || '',
-        category: item.category || 'General',
+        description: item.description || "",
+        category: item.category || "General",
         quantity: item.quantity,
         threshold: item.threshold || 5,
         price: {
           cost: item.cost || 0,
-          retail: item.retail || 0
+          retail: item.retail || 0,
         },
         supplier: {
-          name: shipment.supplier ? shipment.supplier.name : '',
-          contactInfo: shipment.supplier ? shipment.supplier.contactInfo : ''
+          name: shipment.supplier ? shipment.supplier.name : "",
+          contactInfo: shipment.supplier ? shipment.supplier.contactInfo : "",
         },
         companyId: shipment.companyId,
-        createdBy: userId
+        createdBy: userId,
       });
     }
 
@@ -424,12 +454,12 @@ async function processIncomingShipment(shipment, userId) {
     await ItemMovement.create({
       itemId: inventoryItem._id,
       quantity: item.quantity,
-      type: 'In',
+      type: "In",
       reason: `Incoming Shipment: ${shipment.referenceNumber}`,
       destination: shipment.destination,
       companyId: shipment.companyId,
       movedBy: userId,
-      shipmentId: shipment._id
+      shipmentId: shipment._id,
     });
   }
 }
@@ -441,7 +471,7 @@ async function processOutgoingShipment(shipment, userId) {
     // Find inventory item by SKU
     const inventoryItem = await Inventory.findOne({
       sku: item.sku,
-      companyId: shipment.companyId
+      companyId: shipment.companyId,
     });
 
     if (!inventoryItem) {
@@ -450,23 +480,102 @@ async function processOutgoingShipment(shipment, userId) {
 
     // Check if there's enough quantity
     if (inventoryItem.quantity < item.quantity) {
-      throw new Error(`Not enough quantity for item ${item.name} (SKU: ${item.sku})`);
+      throw new Error(
+        `Not enough quantity for item ${item.name} (SKU: ${item.sku})`
+      );
     }
+
+    // Store original quantity for notification check
+    const originalQuantity = inventoryItem.quantity;
 
     // Update inventory
     inventoryItem.quantity -= item.quantity;
     await inventoryItem.save();
 
+    // Check for low stock notification after quantity reduction
+    try {
+      // Check if quantity is now below or equal to threshold
+      const isLowStock = inventoryItem.quantity <= inventoryItem.threshold;
+
+      if (isLowStock && !inventoryItem.lowStockAlertSent) {
+        // Mark the item with a flag indicating an alert was sent
+        inventoryItem.lowStockAlertSent = true;
+        await inventoryItem.save();
+
+        // Create notification
+        const Notification = require("../models/notification.model");
+        const User = require("../models/user.model");
+        const firebaseNotification = require("../utils/firebaseNotification");
+
+        const notification = await Notification.create({
+          title: `Low Stock Alert`,
+          message: `Item ${inventoryItem.name} (SKU: ${inventoryItem.sku}) is now below threshold. Current quantity: ${inventoryItem.quantity}, Threshold: ${inventoryItem.threshold}`,
+          type: "Stock",
+          priority: inventoryItem.quantity === 0 ? "High" : "Medium",
+          relatedTo: {
+            model: "Inventory",
+            id: inventoryItem._id,
+          },
+          recipients: [], // Will be populated with admins and inventory managers
+          companyId: shipment.companyId,
+        });
+
+        // Find admins and inventory managers to notify
+        const recipients = await User.find({
+          companyId: shipment.companyId,
+          role: { $in: ["Admin", "InventoryManager"] },
+        }).select("_id");
+
+        // Add recipients to notification
+        notification.recipients = recipients.map((user) => ({
+          userId: user._id,
+          read: false,
+        }));
+        await notification.save();
+
+        // Send Firebase push notification to offline users
+        try {
+          await firebaseNotification.sendLowStockAlert(
+            inventoryItem,
+            shipment.companyId
+          );
+          console.log(
+            `Firebase notification sent for low stock alert: ${inventoryItem.name} (${inventoryItem.sku})`
+          );
+        } catch (error) {
+          console.error("Error sending Firebase notification:", error);
+        }
+
+        console.log(
+          `Low stock notification sent for item: ${inventoryItem.name} (${inventoryItem.sku})`
+        );
+      }
+      // Reset the alert flag if quantity goes above threshold
+      else if (!isLowStock && inventoryItem.lowStockAlertSent) {
+        inventoryItem.lowStockAlertSent = false;
+        await inventoryItem.save();
+        console.log(
+          `Low stock alert flag reset for item: ${inventoryItem.name} (${inventoryItem.sku})`
+        );
+      }
+    } catch (notificationError) {
+      console.error(
+        "Error processing low stock notification:",
+        notificationError
+      );
+      // Don't fail the main operation if notification fails
+    }
+
     // Create item movement record
     await ItemMovement.create({
       itemId: inventoryItem._id,
       quantity: item.quantity,
-      type: 'Out',
+      type: "Out",
       reason: `Outgoing Shipment: ${shipment.referenceNumber}`,
       source: shipment.source,
       companyId: shipment.companyId,
       movedBy: userId,
-      shipmentId: shipment._id
+      shipmentId: shipment._id,
     });
   }
 }

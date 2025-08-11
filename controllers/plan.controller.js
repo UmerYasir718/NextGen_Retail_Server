@@ -474,3 +474,140 @@ exports.manualPlanUpdate = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get plan analytics and statistics
+// @route   GET /api/plans/analytics
+// @access  Private/SuperAdmin
+exports.getPlanAnalytics = async (req, res, next) => {
+  try {
+    // Get plan usage statistics
+    const planStats = await Plan.aggregate([
+      {
+        $lookup: {
+          from: 'companies',
+          localField: '_id',
+          foreignField: 'planId',
+          as: 'companies'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          price: 1,
+          duration: 1,
+          isActive: 1,
+          companyCount: { $size: '$companies' },
+          totalRevenue: { $multiply: ['$price', { $size: '$companies' }] }
+        }
+      },
+      {
+        $sort: { companyCount: -1 }
+      }
+    ]);
+
+    // Get subscription trends
+    const subscriptionTrends = await Company.aggregate([
+      {
+        $match: {
+          planId: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$planStartDate' },
+            month: { $month: '$planStartDate' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Get trial conversion rate
+    const totalCompanies = await Company.countDocuments();
+    const trialCompanies = await Company.countDocuments({ isTrialPeriod: true });
+    const paidCompanies = totalCompanies - trialCompanies;
+    const conversionRate = totalCompanies > 0 ? (paidCompanies / totalCompanies) * 100 : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        planStats,
+        subscriptionTrends,
+        conversionMetrics: {
+          totalCompanies,
+          trialCompanies,
+          paidCompanies,
+          conversionRate: Math.round(conversionRate * 100) / 100
+        }
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Bulk plan operations
+// @route   POST /api/plans/bulk-operations
+// @access  Private/SuperAdmin
+exports.bulkPlanOperations = async (req, res, next) => {
+  try {
+    const { operation, planIds, data } = req.body;
+
+    if (!operation || !planIds || !Array.isArray(planIds)) {
+      return next(
+        new ErrorResponse("Operation, planIds array, and data are required", 400)
+      );
+    }
+
+    let result;
+    let message;
+
+    switch (operation) {
+      case 'activate':
+        result = await Plan.updateMany(
+          { _id: { $in: planIds } },
+          { isActive: true }
+        );
+        message = `${result.modifiedCount} plans activated successfully`;
+        break;
+
+      case 'deactivate':
+        result = await Plan.updateMany(
+          { _id: { $in: planIds } },
+          { isActive: false }
+        );
+        message = `${result.modifiedCount} plans deactivated successfully`;
+        break;
+
+      case 'update':
+        if (!data) {
+          return next(new ErrorResponse("Data is required for update operation", 400));
+        }
+        result = await Plan.updateMany(
+          { _id: { $in: planIds } },
+          { $set: data }
+        );
+        message = `${result.modifiedCount} plans updated successfully`;
+        break;
+
+      default:
+        return next(new ErrorResponse("Invalid operation. Use: activate, deactivate, or update", 400));
+    }
+
+    res.status(200).json({
+      success: true,
+      message,
+      data: {
+        operation,
+        affectedPlans: result.modifiedCount,
+        totalPlans: planIds.length
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};

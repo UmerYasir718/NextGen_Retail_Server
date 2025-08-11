@@ -1,5 +1,10 @@
 const User = require("../models/user.model");
 const ErrorResponse = require("../utils/errorResponse");
+const {
+  logEntityCreation,
+  logEntityUpdate,
+  logEntityDeletion,
+} = require("../utils/auditLogger");
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -80,6 +85,9 @@ exports.createUser = async (req, res, next) => {
 
     // Create user
     const user = await User.create(req.body);
+
+    // Create audit log
+    await logEntityCreation(req, user, "User", "user");
 
     // Send verification email if user is not verified by default
     if (!user.isVerified) {
@@ -182,17 +190,23 @@ exports.updateUser = async (req, res, next) => {
       );
     }
 
+    // Get original user for audit log
+    const originalUser = await User.findOne(query).select("-password");
+
+    if (!originalUser) {
+      return next(
+        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      );
+    }
+
     // Find and update user
     const user = await User.findOneAndUpdate(query, req.body, {
       new: true,
       runValidators: true,
     }).select("-password");
 
-    if (!user) {
-      return next(
-        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
-      );
-    }
+    // Create audit log
+    await logEntityUpdate(req, originalUser, user, "User", "user");
 
     res.status(200).json({
       success: true,
@@ -227,6 +241,9 @@ exports.deleteUser = async (req, res, next) => {
     if (userToDelete.role === "SuperAdmin") {
       return next(new ErrorResponse("SuperAdmin users cannot be deleted", 403));
     }
+
+    // Create audit log before deletion
+    await logEntityDeletion(req, userToDelete, "User", "user");
 
     // Delete user
     await User.findOneAndDelete(query);
@@ -281,6 +298,159 @@ exports.editUserDetails = async (req, res, next) => {
       success: true,
       message: "User details updated successfully",
       data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get user analytics and statistics
+// @route   GET /api/users/analytics
+// @access  Private/Admin
+exports.getUserAnalytics = async (req, res, next) => {
+  try {
+    let query = {};
+    
+    // Filter by company if not SuperAdmin
+    if (req.user.role !== "super_admin" && req.user.role !== "SuperAdmin") {
+      query.companyId = req.user.companyId;
+    }
+
+    // Get user statistics
+    const totalUsers = await User.countDocuments(query);
+    const verifiedUsers = await User.countDocuments({ ...query, isVerified: true });
+    const unverifiedUsers = totalUsers - verifiedUsers;
+
+    // Get role distribution
+    const roleDistribution = await User.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Get user activity by creation date
+    const userActivity = await User.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Get recent user registrations
+    const recentUsers = await User.find(query)
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('name email role isVerified createdAt')
+      .populate('companyId', 'name');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: {
+          totalUsers,
+          verifiedUsers,
+          unverifiedUsers
+        },
+        roleDistribution,
+        userActivity,
+        recentUsers
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Bulk user operations
+// @route   POST /api/users/bulk-operations
+// @access  Private/Admin
+exports.bulkUserOperations = async (req, res, next) => {
+  try {
+    const { operation, userIds, data } = req.body;
+
+    if (!operation || !userIds || !Array.isArray(userIds)) {
+      return next(
+        new ErrorResponse("Operation, userIds array, and data are required", 400)
+      );
+    }
+
+    // Build query based on user role
+    let query = { _id: { $in: userIds } };
+    if (req.user.role !== "super_admin" && req.user.role !== "SuperAdmin") {
+      query.companyId = req.user.companyId;
+    }
+
+    let result;
+    let message;
+
+    switch (operation) {
+      case 'verify':
+        result = await User.updateMany(
+          query,
+          { 
+            isVerified: true,
+            verificationToken: undefined,
+            verificationExpire: undefined
+          }
+        );
+        message = `${result.modifiedCount} users verified successfully`;
+        break;
+
+      case 'deactivate':
+        result = await User.updateMany(
+          query,
+          { isActive: false }
+        );
+        message = `${result.modifiedCount} users deactivated successfully`;
+        break;
+
+      case 'activate':
+        result = await User.updateMany(
+          query,
+          { isActive: true }
+        );
+        message = `${result.modifiedCount} users activated successfully`;
+        break;
+
+      case 'update':
+        if (!data) {
+          return next(new ErrorResponse("Data is required for update operation", 400));
+        }
+        result = await User.updateMany(
+          query,
+          { $set: data }
+        );
+        message = `${result.modifiedCount} users updated successfully`;
+        break;
+
+      default:
+        return next(new ErrorResponse("Invalid operation. Use: verify, activate, deactivate, or update", 400));
+    }
+
+    res.status(200).json({
+      success: true,
+      message,
+      data: {
+        operation,
+        affectedUsers: result.modifiedCount,
+        totalUsers: userIds.length
+      }
     });
   } catch (err) {
     next(err);

@@ -54,10 +54,20 @@ exports.protect = async (req, res, next) => {
 // Grant access to specific roles
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    // Normalize role names for comparison
+    const userRole = req.user.role;
+    const normalizedRoles = roles.map(role => {
+      if (role === "super_admin") return "super_admin";
+      if (role === "SuperAdmin") return "SuperAdmin";
+      if (role === "company_admin") return "company_admin";
+      if (role === "CompanyAdmin") return "CompanyAdmin";
+      return role;
+    });
+    
+    if (!normalizedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        message: `User role ${req.user.role} is not authorized to access this route`,
+        message: `User role ${userRole} is not authorized to access this route`,
       });
     }
     next();
@@ -67,7 +77,7 @@ exports.authorize = (...roles) => {
 // Company scope middleware
 exports.companyScope = async (req, res, next) => {
   // SuperAdmin can access all companies
-  if (req.user.role === "super_admin") {
+  if (req.user.role === "super_admin" || req.user.role === "SuperAdmin") {
     return next();
   }
 

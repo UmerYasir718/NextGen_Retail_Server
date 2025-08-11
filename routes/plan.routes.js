@@ -9,6 +9,8 @@ const {
   createCheckoutSession,
   stripeWebhook,
   manualPlanUpdate,
+  getPlanAnalytics,
+  bulkPlanOperations,
 } = require("../controllers/plan.controller");
 
 const router = express.Router();
@@ -43,5 +45,7 @@ router.post(
   assignPlanToCompany
 );
 router.post("/manual-update", authorize("super_admin"), manualPlanUpdate);
+router.get("/analytics", authorize("super_admin"), getPlanAnalytics);
+router.post("/bulk-operations", authorize("super_admin"), bulkPlanOperations);
 
 module.exports = router;

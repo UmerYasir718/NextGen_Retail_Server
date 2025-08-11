@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Company = require("../models/company.model");
 const Plan = require("../models/plan.model");
@@ -580,6 +581,64 @@ exports.selectCompany = async (req, res, next) => {
     res.status(200).json({
       success: true,
       token,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    SuperAdmin generate company access token
+// @route   POST /api/auth/superadmin/company-token
+// @access  Private/SuperAdmin
+exports.generateCompanyToken = async (req, res, next) => {
+  try {
+    const { companyId } = req.body;
+
+    // Check if user is SuperAdmin
+    if (req.user.role !== "super_admin") {
+      return next(new ErrorResponse("Not authorized", 403));
+    }
+
+    // Validate companyId
+    if (!companyId) {
+      return next(new ErrorResponse("Company ID is required", 400));
+    }
+
+    // Check if company exists
+    const company = await Company.findById(companyId);
+
+    if (!company) {
+      return next(new ErrorResponse("Company not found", 404));
+    }
+
+    // Generate token for the specified company
+    const token = jwt.sign(
+      {
+        id: req.user.id,
+        companyId: company._id,
+        role: "super_admin",
+        email: req.user.email,
+        name: req.user.name,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRE,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Company access token generated successfully",
+      data: {
+        token,
+        company: {
+          id: company._id,
+          name: company.name,
+          address: company.address,
+          contactEmail: company.contactEmail,
+        },
+        expiresIn: process.env.JWT_EXPIRE || "24h",
+      },
     });
   } catch (err) {
     next(err);

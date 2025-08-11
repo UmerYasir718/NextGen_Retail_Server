@@ -6,6 +6,8 @@ const {
   updateUser,
   deleteUser,
   editUserDetails,
+  getUserAnalytics,
+  bulkUserOperations,
 } = require("../controllers/user.controller");
 
 const router = express.Router();
@@ -26,6 +28,10 @@ router
   .route("/")
   .get(authorize("company_admin", "super_admin"), getUsers)
   .post(authorize("company_admin", "super_admin"), createUser);
+
+// Admin analytics and bulk operations
+router.route("/analytics").get(authorize("company_admin", "super_admin"), getUserAnalytics);
+router.route("/bulk-operations").post(authorize("company_admin", "super_admin"), bulkUserOperations);
 
 router
   .route("/:id")

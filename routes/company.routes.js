@@ -7,6 +7,11 @@ const {
   getDashboardStats,
   getCompanyPlan,
   editCompanyDetails,
+  getCompanyStats,
+  approveCompanySubscription,
+  getStripeTransactions,
+  getAdminOverview,
+  bulkCompanyOperations,
 } = require("../controllers/company.controller");
 
 const router = express.Router();
@@ -23,6 +28,12 @@ router.use(protect);
 
 // SuperAdmin only routes
 router.route("/").get(authorize("super_admin"), getCompanies);
+router.route("/stats").get(authorize("super_admin"), getCompanyStats);
+router
+  .route("/stripe/transactions")
+  .get(authorize("super_admin"), getStripeTransactions);
+router.route("/admin/overview").get(authorize("super_admin"), getAdminOverview);
+router.route("/bulk-operations").post(authorize("super_admin"), bulkCompanyOperations);
 
 router.route("/:id").delete(authorize("super_admin"), deleteCompany);
 
@@ -46,5 +57,10 @@ router
 router
   .route("/edit-details")
   .put(authorize("company_admin"), editCompanyDetails);
+
+// Company subscription approval (SuperAdmin only)
+router
+  .route("/:id/approve-subscription")
+  .post(authorize("super_admin"), approveCompanySubscription);
 
 module.exports = router;

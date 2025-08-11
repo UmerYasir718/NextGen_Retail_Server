@@ -5,6 +5,8 @@ const {
   createForecast,
   updateForecast,
   deleteForecast,
+  getForecastsByCompany,
+  getForecastAnalytics,
 } = require("../controllers/forecast.controller");
 
 const router = express.Router();
@@ -22,5 +24,9 @@ router
   .get(getForecast)
   .put(updateForecast)
   .delete(deleteForecast);
+
+// Company-specific forecast routes
+router.route("/company/:companyId").get(getForecastsByCompany);
+router.route("/analytics/:companyId").get(getForecastAnalytics);
 
 module.exports = router;

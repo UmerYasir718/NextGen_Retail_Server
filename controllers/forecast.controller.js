@@ -197,3 +197,123 @@ exports.deleteForecast = asyncHandler(async (req, res, next) => {
     data: {},
   });
 });
+
+/**
+ * @desc    Get forecasts by company ID with comprehensive data
+ * @route   GET /api/forecast/company/:companyId
+ * @access  Private
+ */
+exports.getForecastsByCompany = asyncHandler(async (req, res, next) => {
+  const { companyId } = req.params;
+  const { model, status, limit = 10 } = req.query;
+
+  // Build query
+  const query = { companyId };
+
+  // Add filters if provided
+  if (model) {
+    query.model = { $regex: model, $options: "i" };
+  }
+
+  if (status) {
+    query.status = status;
+  }
+
+  // Execute query with sorting by creation date
+  const forecasts = await Forecast.find(query)
+    .sort({ createdAt: -1 })
+    .limit(parseInt(limit))
+    .select("-__v");
+
+  if (!forecasts || forecasts.length === 0) {
+    return next(
+      new ErrorResponse(`No forecasts found for company ID ${companyId}`, 404)
+    );
+  }
+
+  // Calculate summary statistics
+  const summary = {
+    totalForecasts: forecasts.length,
+    averageConfidence:
+      forecasts.reduce((sum, f) => sum + f.confidence, 0) / forecasts.length,
+    models: [...new Set(forecasts.map((f) => f.model))],
+    statuses: [...new Set(forecasts.map((f) => f.status))],
+    latestForecast: forecasts[0].createdAt,
+    oldestForecast: forecasts[forecasts.length - 1].createdAt,
+  };
+
+  res.status(200).json({
+    success: true,
+    count: forecasts.length,
+    companyId,
+    summary,
+    data: forecasts,
+  });
+});
+
+/**
+ * @desc    Get forecast analytics and insights
+ * @route   GET /api/forecast/analytics/:companyId
+ * @access  Private
+ */
+exports.getForecastAnalytics = asyncHandler(async (req, res, next) => {
+  const { companyId } = req.params;
+
+  // Get all forecasts for the company
+  const forecasts = await Forecast.find({ companyId })
+    .sort({ createdAt: -1 })
+    .select("data metadata confidence model status createdAt");
+
+  if (!forecasts || forecasts.length === 0) {
+    return next(
+      new ErrorResponse(`No forecasts found for company ID ${companyId}`, 404)
+    );
+  }
+
+  // Aggregate analytics data
+  const analytics = {
+    companyId,
+    totalForecasts: forecasts.length,
+    averageConfidence:
+      forecasts.reduce((sum, f) => sum + f.confidence, 0) / forecasts.length,
+    modelPerformance: {},
+    categoryInsights: {},
+    productInsights: {},
+    inventoryInsights: {},
+    seasonalTrends: {},
+  };
+
+  // Analyze model performance
+  forecasts.forEach((forecast) => {
+    if (!analytics.modelPerformance[forecast.model]) {
+      analytics.modelPerformance[forecast.model] = {
+        count: 0,
+        totalConfidence: 0,
+        averageConfidence: 0,
+      };
+    }
+    analytics.modelPerformance[forecast.model].count++;
+    analytics.modelPerformance[forecast.model].totalConfidence +=
+      forecast.confidence;
+  });
+
+  // Calculate average confidence per model
+  Object.keys(analytics.modelPerformance).forEach((model) => {
+    const modelData = analytics.modelPerformance[model];
+    modelData.averageConfidence = modelData.totalConfidence / modelData.count;
+  });
+
+  // Get latest comprehensive forecast data
+  const latestForecast = forecasts[0];
+  if (latestForecast.data) {
+    analytics.categoryInsights = latestForecast.data.categoryForecast || {};
+    analytics.productInsights = latestForecast.data.productForecast || {};
+    analytics.inventoryInsights = latestForecast.data.inventoryForecast || {};
+    analytics.seasonalTrends = latestForecast.data.demandForecast || {};
+  }
+
+  res.status(200).json({
+    success: true,
+    data: analytics,
+  });
+});

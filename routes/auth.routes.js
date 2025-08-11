@@ -14,6 +14,7 @@ const {
   resendVerification,
   superAdminLogin,
   selectCompany,
+  generateCompanyToken,
 } = require("../controllers/auth.controller");
 
 const router = express.Router();
@@ -42,6 +43,12 @@ router.post(
   protect,
   authorize("super_admin"),
   selectCompany
+);
+router.post(
+  "/superadmin/company-token",
+  protect,
+  authorize("super_admin"),
+  generateCompanyToken
 );
 
 module.exports = router;
